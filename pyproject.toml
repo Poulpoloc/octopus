@@ -1,13 +1,17 @@
 [tool.poetry]
 name = "octopus"
-version = "0.1.0"
+version = "0.1"
 description = ""
 authors = ["Jean-Baptiste Doderlein <jean-baptiste.doderlein@ens-rennes.fr>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+ply = "^3.11"
 
+[tool.poetry.scripts]
+octopus = "octopus.main:main"
+occ = "octopus.main:main"
 
 [build-system]
 requires = ["poetry-core"]

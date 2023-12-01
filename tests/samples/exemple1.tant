@@ -1,0 +1,2 @@
+let x = 1 + /* téma le /* giga */ commentaire */ 2 in // comment
+x + y
