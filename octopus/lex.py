@@ -2,26 +2,43 @@ import ply.lex as lex
 from ply.lex import TOKEN
 
 keywords = {
-    'let' : 'LET',
-    'in'  : 'IN'
+    "tantacule": 'TANTACULE',
+    "looping": 'LOOP',
+    "slideto": 'SLIDETO',
+    "slideback": 'SLIDEBACK',
+    "repeat": 'REPEAT',
+
+    "mark": 'MARK',
+    "unmark": 'UNMARK',
+    "pickup": 'PICKUP',
+    "attack": 'ATTACK',
+    "else": 'ELSE',
+    "drop": 'DROP',
+    "turn": 'TURN',
+    "left": 'LEFT',
+    "up": 'UP',
+    "down": 'DOWN',
+    "right": 'RIGHT',
+    "move": 'MOVE',
+    "dig": 'DIG',
+    "fill": 'FILL',
+    "grab": 'GRAB',
 }
 
 tokens = [
-    'NUMBER',
     'ID',
-    'PLUS',
-    'EQUAL',
+    'NUMBER',
     'LPAR',
-    'RPAR'
+    'RPAR',
+    'LBRACE',
+    'RBRACE',
+    'SEMI',
 ] + list(keywords.values())
 
 states = [('comment', 'exclusive')]
 
-# Lex a number and convert to an integer
 @TOKEN(r'\d+')
 def t_NUMBER(t):
-    # You can specify the regex with the TOKEN decorator
-    # _or_ in the function's docstring
     t.value = int(t.value)
     return t
 
@@ -37,10 +54,11 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 # Simple tokens can be defined as strings
-t_PLUS = r'\+'
-t_EQUAL = r'\='
 t_LPAR = r'\('
 t_RPAR = r'\)'
+t_LBRACE = r'\{'
+t_RBRACE = r'\}'
+t_SEMI = r';'
 
 
 # Comments handling

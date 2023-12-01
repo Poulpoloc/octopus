@@ -1,33 +1,152 @@
-class Expression:
+from enum import Enum
+
+class Declaration:
     pass
 
-class Var(Expression):
-    def __init__(self, name):
+class Tantacule(Declaration):
+    def __init__(self, name, instructions, loop):
         self.name = name
+        self.instructions = instructions
+        self.loop = loop
 
-    def __str__(self):
-        return self.name
+    def __repr__(self):
+        return f"(tantacule (loop = {self.loop}) {self.name} {self.instructions})"
 
-class Int(Expression):
-    def __init__(self, value):
-        self.value = value
+class Direction(Enum):
+    LEFT = 1
+    RIGHT = 2
 
-    def __str__(self):
-        return str(self.value)
+class MoveDir(Enum):
+    FORWARD = 1
+    UP = 2
+    DOWN = 3
 
-class Plus(Expression):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+class Instruction():
+    pass
 
-    def __str__(self):
-        return f"{self.left} + {self.right}"
+class Repeat(Instruction):
+    def __init__(self, number, instructions):
+        self.number = number
+        self.instructions = instructions
 
-class LetIn(Expression):
-    def __init__(self, variable, expression, body):
-        self.variable = variable
-        self.expression = expression
-        self.body = body
+    def __repr__(self):
+        return f"REPEAT {self.number} {self.instructions}"
 
-    def __str__(self):
-        return f"let {self.variable} = {self.expression} in {self.body}"
+
+class SlideTo(Instruction):
+    def __init__(self, tantacule):
+        self.tantacule = tantacule
+
+    def __repr__(self):
+        return f"SLIDETO {self.tantacule}"
+
+class SlideBack(Instruction):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return f"SLIDEBACK"
+
+class Mark(Instruction):
+    def __init__(self, index):
+        self.cost = 1
+        self.index = index
+
+    def __repr__(self):
+        return f"MARK {self.index}"
+
+class Unmark(Instruction):
+    def __init__(self, index):
+        self.cost = 1
+        self.index = index
+
+    def __repr__(self):
+        return f"UNMARK {self.index}"
+
+class PickUp(Instruction):
+    def __init__(self, handler):
+        self.cost = 5
+        self.handler = handler
+
+    def __repr__(self):
+        if self.handler is None:
+            return "PICKUP"
+        else:
+            return f"PICKUP else {self.handler}"
+
+class Drop(Instruction):
+    def __init__(self, handler):
+        self.cost = 5
+        self.handler = handler
+
+    def __repr__(self):
+        if self.handler is None:
+            return "DROP"
+        else:
+            return f"DROP else {self.handler}"
+
+class Turn(Instruction):
+    def __init__(self, direction):
+        self.cost = 1
+        self.direction = direction
+
+    def __repr__(self):
+        return f"TURN {self.direction}"
+
+class Move(Instruction):
+    def __init__(self, handler, move_dir):
+        self.cost = 30
+        self.handler = handler
+        self.move_dir = move_dir
+
+    def __repr__(self):
+        if self.handler is None:
+            return f"MOVE {self.move_dir}"
+        else:
+            return f"MOVE {self.move_dir} else {self.handler}"
+
+class Dig(Instruction):
+    def __init__(self, handler, move_dir):
+        self.cost = 25
+        self.handler = handler
+        self.move_dir = move_dir
+
+    def __repr__(self):
+        if self.handler is None:
+            return f"DIG {self.move_dir}"
+        else:
+            return f"DIG {self.move_dir} else {self.handler}"
+
+class Fill(Instruction):
+    def __init__(self, handler, move_dir):
+        self.cost = 25
+        self.handler = handler
+        self.move_dir = move_dir
+
+    def __repr__(self):
+        if self.handler is None:
+            return f"FILL {self.move_dir}"
+        else:
+            return f"FILL {self.move_dir} else {self.handler}"
+
+class Grab(Instruction):
+    def __init__(self, handler):
+        self.cost = 50
+        self.handler = handler
+
+    def __repr__(self):
+        if self.handler is None:
+            return "GRAB"
+        else:
+            return f"GRAB else {self.handler}"
+
+class Attack(Instruction):
+    def __init__(self, handler):
+        self.cost = 30
+        self.handler = handler
+
+    def __repr__(self):
+        if self.handler is None:
+            return "ATTACK"
+        else:
+            return f"ATTACK else {self.handler}"
