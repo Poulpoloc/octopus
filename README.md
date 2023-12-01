@@ -1,6 +1,6 @@
 # OCTOPUS : Optimizing Compiler for Tantacule, Objectively Perfect and Unsurprisingly Superior
 
-Compilator for ant
+Compiler for ant.
 
 ## Installation
 
