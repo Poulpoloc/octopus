@@ -51,6 +51,12 @@ class AstVisitor():
         for instruction in while_.instructions:
             self.visit(instruction)
 
+    def visit_roll(self, roll):
+        for instructions in roll.cases:
+            for instruction in instructions:
+                self.visit(instruction)
+
+
     def visit_call(self, call):
         pass
 

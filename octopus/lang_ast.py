@@ -180,6 +180,17 @@ class While(Instruction):
     def accept(self, visitor):
         visitor.visit_while(self)
 
+class Roll(Instruction):
+    def __init__(self, cases_count, cases):
+        self.cases_count = cases_count
+        self.cases = cases
+
+    def __repr__(self):
+        return f"(roll {self.cases})"
+
+    def accept(self, visitor):
+        visitor.visit_roll(self)
+
 class Call(Instruction):
     def __init__(self, name):
         self.name = name
