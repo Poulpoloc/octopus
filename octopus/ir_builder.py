@@ -239,7 +239,7 @@ class IRBuilderVisitor(AstVisitor):
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))
         b.add_terminator(i)
-        current_bloc = follower
+        self.current_bloc = follower
 
     def visit_drop(self, drop):
         self.current_bloc.add_instruction(ir.AsmDrop())
@@ -328,7 +328,7 @@ class IRBuilderVisitor(AstVisitor):
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))
         b.add_terminator(i)
-        current_bloc = follower
+        self.current_bloc = follower
 
     def visit_attack(self, attack):
         follower = self.new_bloc()
@@ -343,4 +343,4 @@ class IRBuilderVisitor(AstVisitor):
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))
         b.add_terminator(i)
-        current_bloc = follower
+        self.current_bloc = follower
