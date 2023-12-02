@@ -1,4 +1,4 @@
-from octopus.yacc import parser
+from octopus.yacc import parser, parser_report
 from octopus.codegen import CodeGenVisitor
 import argparse
 import os
@@ -12,7 +12,8 @@ def main():
     args = arg_parser.parse_args()
     with open(os.path.abspath(args.input), 'r') as f:
         input_string = f.read()
-        expression = parser.parse(input_string)
+        expression = parser.parse(input_string, tracking=True)
+        print(parser_report)
 
         visitor = CodeGenVisitor()
         visitor.visit(expression)

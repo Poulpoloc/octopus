@@ -3,6 +3,9 @@ import ply.yacc as yacc
 from octopus.lex import tokens
 import octopus.lang_ast as ast
 
+from octopus.compiler_report import CompilerReport
+parser_report = CompilerReport()
+
 start = 'program'
 
 precedence = (
@@ -79,6 +82,9 @@ def p_instruction_slideback(p):
 
 def p_instruction_mark(p):
     'instruction : MARK LPAR NUMBER RPAR SEMI'
+    if p[3] >= 8:
+        warning = Warning("Marker is too large.", p.lexspan(3))
+        parser_report.warning(warning)
     p[0] = ast.Mark(p[3])
 def p_instruction_unmark(p):
     'instruction : UNMARK LPAR NUMBER RPAR SEMI'
