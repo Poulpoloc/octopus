@@ -1,5 +1,5 @@
 from octopus.yacc import parser
-from octopus.ast_visitor import AstVisitor
+from octopus.codegen import CodeGenVisitor
 import argparse
 import os
 
@@ -12,10 +12,14 @@ def main():
         input_string = f.read()
         expression = parser.parse(input_string)
 
-        visitor = AstVisitor()
+        visitor = CodeGenVisitor()
         visitor.visit(expression)
 
         print(expression)
+
+        assembly_code = visitor.get_code()
+        print("Produced code:")
+        print(assembly_code)
 
 if "__main__" in __name__:
     main()

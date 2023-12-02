@@ -3,6 +3,9 @@ from enum import Enum
 class Program:
     def __init__(self, declarations):
         self.declarations = declarations
+        self.tantacules = {}
+        for declaration in declarations:
+            self.tantacules[declaration.name] = declaration
 
     def __repr__(self):
         return self.declarations.__repr__()
@@ -43,7 +46,10 @@ class SenseDir(Enum):
     ABOVE = 5
     BELOW = 6
 
-class Smell(Enum):
+class Smell:
+    pass
+
+class AtomicSmell(Smell, Enum):
     FRIEND = 1
     ENEMY = 2
     GRABBED = 3
@@ -56,21 +62,28 @@ class Smell(Enum):
     SURFACE = 10
     HOLEABOVE = 11
     HOLEBELOW = 12
-    MARKER = 13
-    ENEMYMARKER = 14
-    HOME = 15
-    ENEMYHOME = 16
+    ENEMYMARKER = 13
+    HOME = 14
+    ENEMYHOME = 14
+
+class Marker(Smell):
+    def __init__(self, index):
+        self.index = index
+
+    def __repr__(self):
+        return f"(Marker {self.index})"
+
 
 class Condition:
     pass
 
 class Sense(Condition):
-    def __init__(self, smell, sensedir):
+    def __init__(self, smell, sense_dir):
         self.smell = smell
-        self.sensedir = sensedir
+        self.sense_dir = sense_dir
 
     def __repr__(self):
-        return f"(? {self.smell} {self.sensedir})"
+        return f"(? {self.smell} {self.sense_dir})"
 
     def accept(self, visitor):
         visitor.visit_sense(self)

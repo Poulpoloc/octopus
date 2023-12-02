@@ -34,6 +34,10 @@ def p_loop_tantacule_decl(p):
     'declaration : LOOP TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Tantacule(p[3], p[7], loop=True)
 
+def p_condition_par(p):
+    'condition : LPAR condition RPAR'
+    p[0] = p[2]
+
 def p_condition_sense(p):
     'condition : smell QMARK sensedir'
     p[0] = ast.Sense(p[1], p[3])
@@ -129,52 +133,52 @@ def p_sense_direction_below(p):
 
 def p_smell_friend(p):
     'smell : FRIEND'
-    p[0] = ast.Smell.FRIEND
+    p[0] = ast.AtomicSmell.FRIEND
 def p_smell_enemy(p):
     'smell : ENEMY'
-    p[0] = ast.Smell.ENEMY
+    p[0] = ast.AtomicSmell.ENEMY
 def p_smell_grabbed(p):
     'smell : GRABBED'
-    p[0] = ast.Smell.GRABBED
+    p[0] = ast.AtomicSmell.GRABBED
 def p_smell_friendwithfood(p):
     'smell : FRIENDWITHFOOD'
-    p[0] = ast.Smell.FRIENDWITHFOOD
+    p[0] = ast.AtomicSmell.FRIENDWITHFOOD
 def p_smell_enemywithfood(p):
     'smell : ENEMYWITHFOOD'
-    p[0] = ast.Smell.ENEMYWITHFOOD
+    p[0] = ast.AtomicSmell.ENEMYWITHFOOD
 def p_smell_food(p):
     'smell : FOOD'
-    p[0] = ast.Smell.FOOD
+    p[0] = ast.AtomicSmell.FOOD
 def p_smell_rock(p):
     'smell : ROCK'
-    p[0] = ast.Smell.ROCK
+    p[0] = ast.AtomicSmell.ROCK
 def p_smell_empty(p):
     'smell : EMPTY'
-    p[0] = ast.Smell.EMPTY
+    p[0] = ast.AtomicSmell.EMPTY
 def p_smell_underground(p):
     'smell : UNDERGROUND'
-    p[0] = ast.Smell.UNDERGROUND
+    p[0] = ast.AtomicSmell.UNDERGROUND
 def p_smell_surface(p):
     'smell : SURFACE'
-    p[0] = ast.Smell.SURFACE
+    p[0] = ast.AtomicSmell.SURFACE
 def p_smell_holeabove(p):
     'smell : HOLEABOVE'
-    p[0] = ast.Smell.HOLEABOVE
+    p[0] = ast.AtomicSmell.HOLEABOVE
 def p_smell_holebelow(p):
     'smell : HOLEBELOW'
-    p[0] = ast.Smell.HOLEBELOW
+    p[0] = ast.AtomicSmell.HOLEBELOW
 def p_smell_marker(p):
-    'smell : MARKER'
-    p[0] = ast.Smell.MARKER
+    'smell : MARKER LPAR NUMBER RPAR'
+    p[0] = ast.Marker(p[3])
 def p_smell_enemymarker(p):
     'smell : ENEMYMARKER'
-    p[0] = ast.Smell.ENEMYMARKER
+    p[0] = ast.AtomicSmell.ENEMYMARKER
 def p_smell_home(p):
     'smell : HOME'
-    p[0] = ast.Smell.HOME
+    p[0] = ast.AtomicSmell.HOME
 def p_smell_enemyhome(p):
     'smell : ENEMYHOME'
-    p[0] = ast.Smell.ENEMYHOME
+    p[0] = ast.AtomicSmell.ENEMYHOME
 
 def p_instruction_turn(p):
     'instruction : TURN direction SEMI'
