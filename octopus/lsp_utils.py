@@ -22,4 +22,6 @@ def get_info(doc : str, position) -> Optional[str]:
         match token:
             case LexToken(type="TANTACULE"):
                 return "***ATTENTION***"
+            case _:
+                return token.type
     return None
