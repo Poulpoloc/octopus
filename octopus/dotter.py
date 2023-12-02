@@ -20,9 +20,6 @@ def dotter():
         expression = parser.parse(input_string, tracking=True)
         print(parser_report)
 
-        visitor = CodeGenVisitor()
-        visitor.visit(expression)
-
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
