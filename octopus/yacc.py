@@ -104,6 +104,23 @@ def p_instruction_while(p):
     p[0] = ast.While(condition=p[3], instructions=p[6])
     save_location(p)
 
+def p_cases_many(p):
+    'cases : cases case'
+    p[0] = p[1]
+    p[0].append(p[2])
+def p_cases_zero(p):
+    'cases : empty'
+    p[0] = []
+
+def p_case(p):
+    'case : ARROW LBRACE instructions RBRACE'
+    p[0] = p[3]
+
+def p_instruction_roll(p):
+    'instruction : ROLL NUMBER cases'
+    p[0] = ast.Roll(p[2], p[3])
+    save_location(p)
+
 def p_instructin_call(p):
     'instruction : ID LPAR RPAR SEMI'
     p[0] = ast.Call(p[1])

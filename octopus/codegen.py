@@ -177,6 +177,28 @@ class CodeGenVisitor(AstVisitor):
         self.write_code(f"Goto {label_in}")
         self.write_code(f"{label_else}:")
 
+    def visit_roll(self, roll):
+        if len(roll.cases) != roll.cases_count:
+            return
+        labels_in = [self.fresh_label() for i in range(roll.cases_count)]
+        labels_out = [self.fresh_label() for i in range(roll.cases_count - 1)]
+
+        i = 0
+        while i < roll.cases_count - 2:
+            self.write_code(f"Roll {roll.cases_count - i} {labels_in[i]} {labels_out[i]}")
+            self.write_code(f"{labels_out[i]}:")
+            i += 1
+
+        self.write_code(f"Roll {i} {labels_in[i]} {labels_in[i+1]}")
+
+        for idx, instructions in enumerate(roll.cases):
+            self.write_code(f"{labels_in[idx]}:")
+            for instruction in instructions:
+                self.visit(instruction)
+            self.write_code(f"Goto {labels_out[-1]}")
+
+        self.write_code(f"{labels_out[-1]}:")
+
     def visit_call(self, call):
         if call.name not in self.tantacules:
             error = CRError("Undefined macro.", call.location_span)

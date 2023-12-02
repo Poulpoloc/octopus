@@ -11,6 +11,7 @@ keywords = {
     "if": 'IF',
     "else": 'ELSE',
     "while": 'WHILE',
+    "roll": 'ROLL',
 
     "mark": 'MARK',
     "unmark": 'UNMARK',
@@ -66,6 +67,7 @@ tokens = [
     'BANG',
     'OR',
     'AND',
+    'ARROW',
 ] + list(keywords.values())
 
 states = [('comment', 'exclusive')]
@@ -96,6 +98,7 @@ t_QMARK = r'\?'
 t_BANG = r'\!'
 t_OR = r'\|\|'
 t_AND = r'&&'
+t_ARROW = r'\|\-\>'
 
 
 # Comments handling
