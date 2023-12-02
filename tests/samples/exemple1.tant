@@ -1,2 +1,7 @@
-let x = 1 + /* téma le /* giga */ commentaire */ 2 in // comment
-x + y
+looping tantacule main () {
+	if ((marker(0)?here || marker(1)?here) && marker(2)?here) {
+		mark(0);
+	} else {
+		mark(1);
+	}
+}

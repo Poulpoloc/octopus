@@ -203,7 +203,7 @@ class PickUp(Instruction):
         visitor.visit_pickup(self)
 
 class Drop(Instruction):
-    def __init__(self, handler):
+    def __init__(self):
         self.cost = 5
 
     def __repr__(self):

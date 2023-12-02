@@ -1,0 +1,9 @@
+looping tantacule main () {
+	if (holeabove?rightahead && enemy?above
+			|| food?here
+			|| rand(6)) {
+		move;
+	} else {
+		move;
+	}
+}

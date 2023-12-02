@@ -1,0 +1,18 @@
+looping tantacule main () {
+	attack else {
+		mark(0);
+	}
+
+	turn left;
+	turn right;
+
+	grab else {
+		mark(1);
+	}
+	slideto foo;
+}
+
+looping tantacule foo() {
+	move;
+	slideback;
+}
