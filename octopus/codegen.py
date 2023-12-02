@@ -141,7 +141,7 @@ class CodeGenVisitor(AstVisitor):
     # INSTRUCTION
     def visit_repeat(self, repeat):
         for i in range(repeat.number):
-            for instruction in self.instructions:
+            for instruction in repeat.instructions:
                 self.visit(instruction)
 
     def visit_ifthenelse(self, ifthenelse):
