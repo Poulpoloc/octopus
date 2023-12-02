@@ -12,7 +12,7 @@ def find_token(doc : str, position):
     tokens = [t for t in lexer]
     s_pos = to_lexpos(doc, position)
     for i in range(len(tokens)-1):
-        if tokens[i].lexpos <= s_pos and tokens[i].lexpos > s_pos:
+        if tokens[i].lexpos <= s_pos and tokens[i+1].lexpos > s_pos:
             return tokens[i]
     return None
 
