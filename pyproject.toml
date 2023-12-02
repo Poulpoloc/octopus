@@ -12,6 +12,8 @@ ply = "^3.11"
 [tool.poetry.scripts]
 octopus = "octopus.main:main"
 occ = "octopus.main:main"
+ocd = "octopus.dotter:dotter"
+octodot = "octopus.dotter:dotter"
 
 [build-system]
 requires = ["poetry-core"]
