@@ -1,6 +1,6 @@
 from octopus.ir import *
 
-class AstVisitor():
+class IRVisitor():
     def visit(self, o):
         o.accept(self)
 
@@ -20,7 +20,7 @@ class AstVisitor():
 
     def visit_asm_sense(self, sense):
         pass
-    
+
     def visit_asm_mark(self, mark):
         pass
     def visit_asm_unmark(self, unmark):
