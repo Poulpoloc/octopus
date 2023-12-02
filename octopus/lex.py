@@ -7,22 +7,49 @@ keywords = {
     "slideto": 'SLIDETO',
     "slideback": 'SLIDEBACK',
     "repeat": 'REPEAT',
+    "if": 'IF',
+    "else": 'ELSE',
 
     "mark": 'MARK',
     "unmark": 'UNMARK',
     "pickup": 'PICKUP',
     "attack": 'ATTACK',
-    "else": 'ELSE',
     "drop": 'DROP',
     "turn": 'TURN',
-    "left": 'LEFT',
-    "up": 'UP',
-    "down": 'DOWN',
-    "right": 'RIGHT',
     "move": 'MOVE',
     "dig": 'DIG',
     "fill": 'FILL',
     "grab": 'GRAB',
+
+    "left": 'LEFT',
+    "up": 'UP',
+    "down": 'DOWN',
+    "right": 'RIGHT',
+
+    "rand": 'RAND',
+    "here": 'HERE',
+    "ahead": 'AHEAD',
+    "leftahead": 'LEFTAHEAD',
+    "rightahead": 'RIGHTAHEAD',
+    "above": 'ABOVE',
+    "below": 'BELOW',
+
+    "friend": 'FRIEND',
+    "enemy": 'ENEMY',
+    "grabbed": 'GRABBED',
+    "friendwithfood": 'FRIENDWITHFOOD',
+    "enemywithfood": 'ENEMYWITHFOOD',
+    "food": 'FOOD',
+    "rock": 'ROCK',
+    "empty": 'EMPTY',
+    "underground": 'UNDERGROUND',
+    "surface": 'SURFACE',
+    "holeabove": 'HOLEABOVE',
+    "holebelow": 'HOLEBELOW',
+    "marker": 'MARKER',
+    "enemymarker": 'ENEMYMARKER',
+    "home": 'HOME',
+    "enemyhome": 'ENEMYHOME',
 }
 
 tokens = [
@@ -33,6 +60,9 @@ tokens = [
     'LBRACE',
     'RBRACE',
     'SEMI',
+    'QMARK',
+    'OR',
+    'AND',
 ] + list(keywords.values())
 
 states = [('comment', 'exclusive')]
@@ -59,6 +89,9 @@ t_RPAR = r'\)'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
 t_SEMI = r';'
+t_QMARK = r'\?'
+t_OR = r'\|\|'
+t_AND = r'&&'
 
 
 # Comments handling
