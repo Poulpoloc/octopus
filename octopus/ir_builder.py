@@ -45,10 +45,16 @@ class IRBuilderVisitor(AstVisitor):
             case ast.SenseDir.BELOW:
                 return "BELOW"
 
+    def get_integer(self, index):
+        if isinstance(index, ast.Number):
+            return index.value
+        else:
+            return self.tantacules[index.name].value
+
     def smell(self, smell):
         match smell:
             case ast.Marker(index=index):
-                return f"Marker {index}"
+                return f"Marker {self.get_integer(index)}"
             case ast.AtomicSmell.FRIEND:
                 return "Friend"
             case ast.AtomicSmell.ENEMY:
@@ -110,13 +116,26 @@ class IRBuilderVisitor(AstVisitor):
     def visit_macro(self, macro):
         pass
 
+    def visit_bool(self, bool_):
+        pass
+
+    def visit_int(self, int_):
+        pass
+
     # CONDITION
+    def visit_condvar(self, condvar):
+        if condvar.name not in self.tantacules:
+            return
+        self.visit(self.tantacules[condvar.name].condition)
+
     def visit_sense(self, sense):
+        if isinstance(sense.smell, ast.Marker):
+            sense.smell.index = self.get_integer(sense.smell.index)
         i = ir.AsmSense(sense.sense_dir, self.bloc_then, self.bloc_else, sense.smell)
         self.current_bloc.add_terminator(i)
 
     def visit_rand(self, rand):
-        i = ir.AsmRoll(rand.faces_count, self.bloc_then, self.bloc_else)
+        i = ir.AsmRoll(self.get_integer(rand.faces_count), self.bloc_then, self.bloc_else)
         self.current_bloc.add_terminator(i)
 
     def visit_not(self, not_):
@@ -144,7 +163,7 @@ class IRBuilderVisitor(AstVisitor):
 
     # INSTRUCTION
     def visit_repeat(self, repeat):
-        for i in range(repeat.number):
+        for i in range(self.get_integer(repeat.number)):
             for instruction in repeat.instructions:
                 self.visit(instruction)
 
@@ -188,6 +207,7 @@ class IRBuilderVisitor(AstVisitor):
         self.current_bloc = target
 
     def visit_roll(self, roll):
+        roll.cases_count = self.get_integer(roll.cases_count)
         if len(roll.cases) != roll.cases_count:
             return
 
@@ -221,10 +241,10 @@ class IRBuilderVisitor(AstVisitor):
         self.current_bloc.add_terminator(ir.AsmGoto(self.current_tantacule))
 
     def visit_mark(self, mark):
-        self.current_bloc.add_instruction(ir.AsmMark(mark.index))
+        self.current_bloc.add_instruction(ir.AsmMark(self.get_integer(mark.index)))
 
     def visit_unmark(self, mark):
-        self.current_bloc.add_instruction(ir.AsmUnmark(mark.index))
+        self.current_bloc.add_instruction(ir.AsmUnmark(self.get_integer(mark.index)))
 
     def visit_pickup(self, pickup):
         follower = self.new_bloc()
