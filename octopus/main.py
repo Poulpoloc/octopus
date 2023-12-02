@@ -3,6 +3,12 @@ from octopus.codegen import CodeGenVisitor
 import argparse
 import os
 
+def get_report(path):
+    with open(os.path.abspath(path), 'r') as f:
+        input_string = f.read()
+        expression = parser.parse(input_string, tracking=True)
+        return parser_report
+
 def main():
     arg_parser = argparse.ArgumentParser(description='Compile ant')
     arg_parser.add_argument('input', type=str, 
