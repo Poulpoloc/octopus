@@ -33,6 +33,7 @@ class IRDotGenerator(IRVisitor):
     
     def visit_asm_sense(self, sense : AsmSense):
         self.output += "        |{Sense\n"
+
         for succ in sense.get_successors():
             self.link +=f"   {self.current_bloc.identifier} -> {succ.identifier};\n"
 
