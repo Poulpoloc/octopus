@@ -13,7 +13,7 @@ class CompilerReport:
         errors = []
 
     def warning(self, warning:Warning):
-        warnings.append(warning)
+        self.warnings.append(warning)
 
     def error(self, error):
         errors.append(error)

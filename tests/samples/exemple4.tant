@@ -1,0 +1,15 @@
+looping tantacule main () {
+    /* if (rand(3)) {
+        move;
+    }
+    else {
+        turn left;
+        turn left;
+        turn left;
+        move;
+        turn left;
+        turn left;
+        turn left;
+    } */
+    move;
+}

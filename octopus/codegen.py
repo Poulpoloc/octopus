@@ -170,7 +170,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Pickup {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in pickup.handler:
@@ -200,7 +200,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Move{dir} {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in move.handler:
@@ -220,7 +220,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Dig{dir} {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in dig.handler:
@@ -240,7 +240,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Fill{dir} {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in fill.handler:
@@ -259,7 +259,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Grab {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in grab.handler:
@@ -278,7 +278,7 @@ class CodeGenVisitor(AstVisitor):
             lbl2 = self.fresh_label()
 
             self.write_code(f"Attack {lbl2}")
-            self.write_code(f"Goto {lbl1}:")
+            self.write_code(f"Goto {lbl1}")
             self.write_code(f"{lbl2}:")
 
             for instruction in attack.handler:
