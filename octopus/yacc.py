@@ -22,6 +22,13 @@ def p_empty(p):
     'empty :'
     pass
 
+def p_integer(p):
+    'integer : NUMBER'
+    p[0] = ast.Number(p[1])
+def p_intvar(p):
+    'integer : ID'
+    p[0] = ast.IntVar(p[1])
+
 def p_declarations_many(p):
     'declarations : declarations declaration'
     p[0] = p[1]
@@ -46,10 +53,23 @@ def p_macro_decl(p):
     'declaration : DEF ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Macro(p[2], p[6])
     save_location(p)
+def p_bool_decl(p):
+    'declaration : BOOL ID EQ condition SEMI'
+    p[0] = ast.ConstBool(p[2], p[4])
+    save_location(p)
+def p_int_decl(p):
+    'declaration : INT ID EQ NUMBER SEMI'
+    p[0] = ast.ConstInt(p[2], p[4])
+    save_location(p)
 
 def p_condition_par(p):
     'condition : LPAR condition RPAR'
     p[0] = p[2]
+    save_location(p)
+
+def p_condition_var(p):
+    'condition : ID'
+    p[0] = ast.CondVar(p[1])
     save_location(p)
 
 def p_condition_sense(p):
@@ -58,7 +78,7 @@ def p_condition_sense(p):
     save_location(p)
 
 def p_condition_random(p):
-    'condition : RAND LPAR NUMBER RPAR'
+    'condition : RAND LPAR integer RPAR'
     p[0] = ast.Rand(p[3])
     save_location(p)
 
@@ -86,7 +106,7 @@ def p_instructions_zero(p):
     p[0] = []
 
 def p_instruction_repeat(p):
-    'instruction : REPEAT NUMBER LBRACE instructions RBRACE'
+    'instruction : REPEAT integer LBRACE instructions RBRACE'
     p[0] = ast.Repeat(p[2], p[4])
     save_location(p)
 
@@ -117,7 +137,7 @@ def p_case(p):
     p[0] = p[3]
 
 def p_instruction_roll(p):
-    'instruction : ROLL NUMBER cases'
+    'instruction : ROLL integer cases'
     p[0] = ast.Roll(p[2], p[3])
     save_location(p)
 
@@ -136,14 +156,11 @@ def p_instruction_slideback(p):
     save_location(p)
 
 def p_instruction_mark(p):
-    'instruction : MARK LPAR NUMBER RPAR SEMI'
-    if p[3] >= 8:
-        warning = CRWarning("Marker is too large.", p.lexspan(3))
-        parser_report.warning(warning)
+    'instruction : MARK LPAR integer RPAR SEMI'
     p[0] = ast.Mark(p[3])
     save_location(p)
 def p_instruction_unmark(p):
-    'instruction : UNMARK LPAR NUMBER RPAR SEMI'
+    'instruction : UNMARK LPAR integer RPAR SEMI'
     if p[3] >= 8:
         warning = CRWarning("Marker is too large.", p.lexspan(3))
         parser_report.warning(warning)
@@ -240,7 +257,7 @@ def p_smell_holebelow(p):
     'smell : HOLEBELOW'
     p[0] = ast.AtomicSmell.HOLEBELOW
 def p_smell_marker(p):
-    'smell : MARKER LPAR NUMBER RPAR'
+    'smell : MARKER LPAR integer RPAR'
     p[0] = ast.Marker(p[3])
 def p_smell_enemymarker(p):
     'smell : ENEMYMARKER'

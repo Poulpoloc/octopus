@@ -14,6 +14,23 @@ class Program:
         visitor.visit_program(self)
 
 
+class Integer:
+    pass
+
+class Number(Integer):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return f"{self.value}"
+
+class IntVar(Integer):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"{self.name}"
+
 class Declaration:
     pass
 
@@ -41,6 +58,27 @@ class Macro(Declaration):
     def accept(self, visitor):
         visitor.visit_macro(self)
 
+class ConstBool(Declaration):
+    def __init__(self, name, condition):
+         self.name = name
+         self.condition = condition
+
+    def __repr__(self):
+        return f"(bool {self.name} {self.condition})"
+
+    def accept(self, visitor):
+        visitor.visit_bool(self)
+
+class ConstInt(Declaration):
+    def __init__(self, name, value):
+         self.name = name
+         self.value = value
+
+    def __repr__(self):
+        return f"(int {self.name} {self.value})"
+
+    def accept(self, visitor):
+        visitor.visit_int(self)
 
 class Direction(Enum):
     LEFT = 1
@@ -89,6 +127,16 @@ class Marker(Smell):
 
 class Condition:
     pass
+
+class CondVar(Condition):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"(var {self.name})"
+
+    def accept(self, visitor):
+        visitor.visit_condvar(self)
 
 class Sense(Condition):
     def __init__(self, smell, sense_dir):

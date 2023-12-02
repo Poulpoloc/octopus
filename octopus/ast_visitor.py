@@ -16,7 +16,16 @@ class AstVisitor():
         for instruction in macro.instructions:
             self.visit(instruction)
 
+    def visit_bool(self, bool_):
+        self.visit(bool_.condition)
+
+    def visit_int(self, int_):
+        self.visit(int_.value)
+
     # CONDITION
+    def visit_condvar(self, condvar):
+        pass
+
     def visit_sense(self, sense):
         pass
 

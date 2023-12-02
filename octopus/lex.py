@@ -12,6 +12,8 @@ keywords = {
     "else": 'ELSE',
     "while": 'WHILE',
     "roll": 'ROLL',
+    "bool": 'BOOL',
+    "int": 'INT',
 
     "mark": 'MARK',
     "unmark": 'UNMARK',
@@ -67,6 +69,7 @@ tokens = [
     'BANG',
     'OR',
     'AND',
+    'EQ',
     'ARROW',
 ] + list(keywords.values())
 
@@ -99,6 +102,7 @@ t_BANG = r'\!'
 t_OR = r'\|\|'
 t_AND = r'&&'
 t_ARROW = r'\|\-\>'
+t_EQ = r'='
 
 
 # Comments handling
