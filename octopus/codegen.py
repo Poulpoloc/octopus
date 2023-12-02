@@ -86,6 +86,8 @@ class CodeGenVisitor(AstVisitor):
 
     # PROGRAM
     def visit_program(self, program):
+        if "main" not in program.tantacules:
+            codegen_report.error(Error("No tantacule main"), None)
         self.visit(program.tantacules["main"])
         for declaration in program.declarations:
             if declaration.name != "main":
@@ -111,6 +113,7 @@ class CodeGenVisitor(AstVisitor):
     def visit_not(self, not_):
         self.label_then, self.label_else = self.label_else, self.label_then
         self.visit(not_.condition)
+        self.label_then, self.label_else = self.label_else, self.label_then
 
     def visit_or(self, or_):
         lbl_else1 = self.fresh_label()
@@ -139,13 +142,16 @@ class CodeGenVisitor(AstVisitor):
     def visit_ifthenelse(self, ifthenelse):
         self.label_then = self.fresh_label()
         self.label_else = self.fresh_label()
+        label_then = self.label_then
+        label_else = self.label_else
         label_out = self.fresh_label()
+
         self.visit(ifthenelse.condition)
-        self.write_code(f"{self.label_then}:")
+        self.write_code(f"{label_then}:")
         for instruction in ifthenelse.then:
             self.visit(instruction)
         self.write_code(f"Goto {label_out}")
-        self.write_code(f"{self.label_else}:")
+        self.write_code(f"{label_else}:")
         for instruction in ifthenelse.else_:
             self.visit(instruction)
         self.write_code(f"Goto {label_out}")
@@ -154,15 +160,18 @@ class CodeGenVisitor(AstVisitor):
     def visit_while(self, while_):
         self.label_then = self.fresh_label()
         self.label_else = self.fresh_label()
+        label_then = self.label_then
+        label_else = self.label_else
         label_in = self.fresh_label()
 
+        print(self.label_then, self.label_else, label_in)
         self.write_code(f"{label_in}:")
         self.visit(while_.condition)
-        self.write_code(f"{self.label_then}:")
+        self.write_code(f"{label_then}:")
         for instruction in while_.instructions:
             self.visit(instruction)
         self.write_code(f"Goto {label_in}")
-        self.write_code(f"{self.label_else}:")
+        self.write_code(f"{label_else}:")
 
     def visit_slideto(self, slideto):
         self.write_code(f"Goto {slideto.tantacule}")
