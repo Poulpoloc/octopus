@@ -16,7 +16,7 @@ class CompilerReport:
         self.warnings.append(warning)
 
     def error(self, error):
-        errors.append(error)
+        self.errors.append(error)
 
     def merge_span(self, spans):
         return min([i[0] for i in spans]), max([i[1] for i in spans])
