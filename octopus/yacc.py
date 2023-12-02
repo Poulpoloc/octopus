@@ -49,9 +49,26 @@ def p_loop_tantacule_decl(p):
     'declaration : LOOP TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Tantacule(p[3], p[7], loop=True)
     save_location(p)
-def p_macro_decl(p):
+
+def p_argdecl_bool(p):
+    """ argdecl : BOOL ID
+                | INT ID"""
+    p[0] = p[1], p[2]
+def p_argdecls_one(p):
+    'argdecls : argdecl'
+    p[0] = [p[1]]
+def p_argdecls_many(p):
+    'argdecls : argdecls COMMA argdecl'
+    p[0] = p[1]
+    p[0].append(p[3])
+
+def p_macro_decl_args(p):
+    'declaration : DEF ID LPAR argdecls RPAR LBRACE instructions RBRACE'
+    p[0] = ast.Macro(p[2], p[4], p[7])
+    save_location(p)
+def p_macro_decl_noargs(p):
     'declaration : DEF ID LPAR RPAR LBRACE instructions RBRACE'
-    p[0] = ast.Macro(p[2], p[6])
+    p[0] = ast.Macro(p[2], [], p[6])
     save_location(p)
 def p_bool_decl(p):
     'declaration : BOOL ID EQ condition SEMI'
@@ -141,9 +158,25 @@ def p_instruction_roll(p):
     p[0] = ast.Roll(p[2], p[3])
     save_location(p)
 
-def p_instructin_call(p):
+def p_arg_bool(p):
+    """arg : condition
+           | integer"""
+    p[0] = p[1]
+    save_location(p)
+def p_arg_one(p):
+    'args : arg'
+    p[0] = [p[1]]
+def p_arg_many(p):
+    'args : args COMMA arg'
+    p[0] = p[1]
+    p[0].append(p[3])
+def p_instructin_call_arg(p):
+    'instruction : ID LPAR args RPAR SEMI'
+    p[0] = ast.Call(p[1], p[3])
+    save_location(p)
+def p_instructin_call_empty(p):
     'instruction : ID LPAR RPAR SEMI'
-    p[0] = ast.Call(p[1])
+    p[0] = ast.Call(p[1], [])
     save_location(p)
 
 def p_instruction_slideto(p):
