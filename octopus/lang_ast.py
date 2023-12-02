@@ -19,6 +19,7 @@ class Declaration:
 
 class Tantacule(Declaration):
     def __init__(self, name, instructions, loop):
+        self.location_span = None
         self.name = name
         self.instructions = instructions
         self.loop = loop

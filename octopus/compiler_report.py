@@ -3,19 +3,20 @@ class CompilerReport:
     Contains useful information about the compilation process.
     This is supposed to be used by Poulpi.
     """
+    warnings : list[Warning] = []
+    errors = []
     def __init__(self):
-        self.warnings : list[Warning] = []
-        self.errors = []
+        pass
 
     def reset(self):
-        self.warnings = []
-        self.errors = []
+        warnings = []
+        errors = []
 
     def warning(self, warning:Warning):
-        self.warnings.append(warning)
+        warnings.append(warning)
 
     def error(self, error):
-        self.errors.append(error)
+        errors.append(error)
 
     def merge_span(self, spans):
         return min([i[0] for i in spans]), max([i[1] for i in spans])

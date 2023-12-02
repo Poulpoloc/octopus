@@ -15,6 +15,9 @@ precedence = (
     ('nonassoc', 'QMARK'),
 )
 
+def save_location(p):
+    p[0].location_span = p.lexpos(1), p.lexspan(-1)[1]
+
 def p_empty(p):
     'empty :'
     pass
@@ -34,33 +37,41 @@ def p_program(p):
 def p_base_tantacule_decl(p):
     'declaration : TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Tantacule(p[2], p[6], loop=False)
+    save_location(p)
 def p_loop_tantacule_decl(p):
     'declaration : LOOP TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Tantacule(p[3], p[7], loop=True)
+    save_location(p)
 
 def p_condition_par(p):
     'condition : LPAR condition RPAR'
     p[0] = p[2]
+    save_location(p)
 
 def p_condition_sense(p):
     'condition : smell QMARK sensedir'
     p[0] = ast.Sense(p[1], p[3])
+    save_location(p)
 
 def p_condition_random(p):
     'condition : RAND LPAR NUMBER RPAR'
     p[0] = ast.Rand(p[3])
+    save_location(p)
 
 def p_condition_not(p):
     'condition : BANG condition'
     p[0] = ast.Not(p[2])
+    save_location(p)
 
 def p_condition_or(p):
     'condition : condition OR condition'
     p[0] = ast.Or(p[1], p[3])
+    save_location(p)
 
 def p_condition_and(p):
     'condition : condition AND condition'
     p[0] = ast.And(p[1], p[3])
+    save_location(p)
 
 def p_instructions_many(p):
     'instructions : instructions instruction'
@@ -73,21 +84,25 @@ def p_instructions_zero(p):
 def p_instruction_repeat(p):
     'instruction : REPEAT NUMBER LBRACE instructions RBRACE'
     p[0] = ast.Repeat(p[2], p[4])
+    save_location(p)
 
 def p_instruction_if(p):
     'instruction : IF LPAR condition RPAR LBRACE instructions RBRACE'
     p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=[])
-
+    save_location(p)
 def p_instruction_ifelse(p):
     'instruction : IF LPAR condition RPAR LBRACE instructions RBRACE ELSE LBRACE instructions RBRACE'
     p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=p[10])
+    save_location(p)
 
 def p_instruction_slideto(p):
     'instruction : SLIDETO ID SEMI'
     p[0] = ast.SlideTo(p[2])
+    save_location(p)
 def p_instruction_slideback(p):
     'instruction : SLIDEBACK SEMI'
     p[0] = ast.SlideBack()
+    save_location(p)
 
 def p_instruction_mark(p):
     'instruction : MARK LPAR NUMBER RPAR SEMI'
@@ -95,26 +110,31 @@ def p_instruction_mark(p):
         warning = CRWarning("Marker is too large.", p.lexspan(3))
         parser_report.warning(warning)
     p[0] = ast.Mark(p[3])
+    save_location(p)
 def p_instruction_unmark(p):
     'instruction : UNMARK LPAR NUMBER RPAR SEMI'
     if p[3] >= 8:
         warning = CRWarning("Marker is too large.", p.lexspan(3))
         parser_report.warning(warning)
     p[0] = ast.Unmark(p[3])
+    save_location(p)
 
 def p_instruction_pickup(p):
     'instruction : PICKUP SEMI'
     p[0] = ast.PickUp(None)
+    save_location(p)
 def p_instruction_pickup_else(p):
     'instruction : PICKUP ELSE LBRACE instructions RBRACE'
     if len(p[4]) == 0:
         warning = CRWarning("Empty handler.", (p.lexpos(3), p.lexpos(5)))
         parser_report.warning(warning)
     p[0] = ast.PickUp(p[4])
+    save_location(p)
 
 def p_instruction_drop(p):
     'instruction : DROP SEMI'
     p[0] = ast.Drop()
+    save_location(p)
 
 def p_direction_left(p):
     'direction : LEFT'
@@ -208,37 +228,62 @@ def p_instruction_turn(p):
 def p_instruction_move(p):
     'instruction : MOVE movedir SEMI'
     p[0] = ast.Move(None, p[2])
+    save_location(p)
 def p_instruction_move_else(p):
     'instruction : MOVE movedir ELSE LBRACE instructions RBRACE'
+    if len(p[5]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(4), p.lexpos(6)))
+        parser_report.warning(warning)
     p[0] = ast.Move(p[5], p[2])
+    save_location(p)
 
 def p_instruction_dig(p):
     'instruction : DIG movedir SEMI'
     p[0] = ast.Dig(None, p[2])
+    save_location(p)
 def p_instruction_dig_else(p):
     'instruction : DIG movedir ELSE LBRACE instructions RBRACE'
+    if len(p[5]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(4), p.lexpos(6)))
+        parser_report.warning(warning)
     p[0] = ast.Dig(p[5], p[2])
+    save_location(p)
 
 def p_instruction_fill(p):
     'instruction : FILL movedir SEMI'
     p[0] = ast.Fill(None, p[2])
+    save_location(p)
 def p_instruction_fill_else(p):
     'instruction : FILL movedir ELSE LBRACE instructions RBRACE'
+    if len(p[5]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(4), p.lexpos(6)))
+        parser_report.warning(warning)
     p[0] = ast.Fill(p[5], p[2])
+    save_location(p)
 
 def p_instruction_grab(p):
     'instruction : GRAB SEMI'
     p[0] = ast.Grab(None)
+    save_location(p)
 def p_instruction_grab_else(p):
     'instruction : GRAB ELSE LBRACE instructions RBRACE'
+    if len(p[4]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(3), p.lexpos(5)))
+        parser_report.warning(warning)
     p[0] = ast.Grab(p[4])
+    save_location(p)
 
 def p_instruction_attack(p):
     'instruction : ATTACK SEMI'
     p[0] = ast.Attack(None)
+    save_location(p)
 def p_instruction_attack_else(p):
     'instruction : ATTACK ELSE LBRACE instructions RBRACE'
+    if len(p[4]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(3), p.lexpos(5)))
+        parser_report.warning(warning)
     p[0] = ast.Attack(p[4])
+    save_location(p)
 
 
 def p_error(t):
