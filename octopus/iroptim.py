@@ -22,15 +22,16 @@ class IRGotoOptimizer(IRVisitor):
                 
             elif len(bloc.instructions) == 1: # Reduce path
                 goto : AsmGoto = bloc.get_terminator()
-                for start in bloc.predecessors:
-                    end : Bloc = goto.target
-                    # Remove block from end predecessor
-                    try:
-                        end.predecessors.remove(bloc)
-                    except:
-                        pass
-                    # Add start to end predecessor
-                    end.add_predecessor(start)
-                    # Replace goto by end in start terminator
-                    start.get_terminator().replace(bloc,end)
-                self.ir.blocs.remove(bloc)
+                if goto.target != bloc:
+                    for start in bloc.predecessors:
+                        end : Bloc = goto.target
+                        # Remove block from end predecessor
+                        try:
+                            end.predecessors.remove(bloc)
+                        except:
+                            pass
+                        # Add start to end predecessor
+                        end.add_predecessor(start)
+                        # Replace goto by end in start terminator
+                        start.get_terminator().replace(bloc,end)
+                    self.ir.blocs.remove(bloc)

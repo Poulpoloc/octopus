@@ -1,0 +1,13 @@
+tantacule main () {
+    if (rock?ahead) {
+        turn left;
+        turn left;
+        turn left;
+    } else { slideto loop; }
+
+    move;
+    slideto loop;
+}
+
+
+looping tantacule loop () {}

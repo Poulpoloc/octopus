@@ -41,6 +41,8 @@ def main():
                     help='File to compile')
     arg_parser.add_argument('--output', "-o", type=str, 
                     help='File to store')
+    arg_parser.add_argument('-O0', '--O0',
+                    action='store_true') 
     args = arg_parser.parse_args()
     with open(os.path.abspath(args.input), 'r') as f:
         input_string = f.read()
@@ -50,8 +52,9 @@ def main():
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
-        #optimizer = IRGotoOptimizer()
-        #irbuilder.ir.accept(optimizer)
+        if not args.O0:
+            optimizer = IRGotoOptimizer()
+            irbuilder.ir.accept(optimizer)
 
         codegen = IRCodeGenerator()
         codegen.visit(irbuilder.ir)
