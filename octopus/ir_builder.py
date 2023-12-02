@@ -299,9 +299,9 @@ class IRBuilderVisitor(AstVisitor):
         if dig.move_dir == ast.MoveDir.FORWARD:
             i = ir.AsmDig(follower, None)
         if dig.move_dir == ast.MoveDir.UP:
-            i = ir.AsmDig(follower, None)
+            i = ir.AsmDigUp(follower, None)
         if dig.move_dir == ast.MoveDir.DOWN:
-            i = ir.AsmDig(follower, None)
+            i = ir.AsmDigDown(follower, None)
 
         if dig.handler is None:
             i.handler = follower
@@ -320,9 +320,9 @@ class IRBuilderVisitor(AstVisitor):
         if fill.move_dir == ast.MoveDir.FORWARD:
             i = ir.AsmFill(follower, None)
         if fill.move_dir == ast.MoveDir.UP:
-            i = ir.AsmFill(follower, None)
+            i = ir.AsmFillUp(follower, None)
         if fill.move_dir == ast.MoveDir.DOWN:
-            i = ir.AsmFill(follower, None)
+            i = ir.AsmFillDown(follower, None)
 
         if fill.handler is None:
             i.handler = follower
