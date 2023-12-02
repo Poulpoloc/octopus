@@ -7,6 +7,7 @@ def to_lexpos(text : str, position) -> int:
     return sum(map(len,text.split("\n")[:position.line])) + position.character
 
 def find_token(doc : str, position):
+    lexer.lineno = 0
     lexer.input(doc)
     tokens = [t for t in lexer]
     s_pos = to_lexpos(doc, position)
