@@ -9,8 +9,8 @@ class CompilerReport:
         pass
 
     def reset(self):
-        warnings = []
-        errors = []
+        self.warnings = []
+        self.errors = []
 
     def warning(self, warning:Warning):
         self.warnings.append(warning)
