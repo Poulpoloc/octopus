@@ -8,7 +8,7 @@ def to_lexpos(text : str, position) -> int:
 
 def find_token(doc : str, position):
     lexer.input(doc)
-    tokens = [t for t in lexer.token()]
+    tokens = [t for t in lexer]
     s_pos = to_lexpos(doc, position)
     for i in range(len(tokens)-1):
         if tokens[i].lexpos <= s_pos and tokens[i].lexpos > s_pos:
