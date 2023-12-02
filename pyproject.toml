@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "octopus"
-version = "0.1"
+version = "1.0"
 description = ""
 authors = ["Jean-Baptiste Doderlein <jean-baptiste.doderlein@ens-rennes.fr>"]
 readme = "README.md"
