@@ -1,10 +1,9 @@
 from octopus.iroptim import IRGotoOptimizer
-from octopus.irtodot import IRDotGenerator
 from octopus.yacc import parser, parser_report
 from octopus.codegen import CodeGenVisitor
 from octopus.ir_builder  import IRBuilderVisitor
 from octopus.ir_codegen  import IRCodeGenerator
-from octopus.compiler_report import CompilerReport
+from octopus.compiler_report import CompilerReport, CRError
 import argparse
 import os
 
@@ -15,7 +14,25 @@ def get_report(path):
         # Ici martin décide de mélanger les objet avec la classe 
         # Mais bon, ça marche, et on est en Python, on lui en veut pas
         CompilerReport.reset(CompilerReport) # type: ignore
-        expression = parser.parse(input_string, tracking=True)
+        try:
+            expression = parser.parse(input_string, tracking=True)
+            try:
+                visitor = CodeGenVisitor()
+                visitor.visit(expression)
+
+                irbuilder = IRBuilderVisitor()
+                irbuilder.visit(expression)
+
+                optimizer = IRGotoOptimizer()
+                irbuilder.ir.accept(optimizer)
+
+                codegen = IRCodeGenerator()
+                codegen.visit(irbuilder.ir)
+            except:
+                parser_report.errors.append(CRError("Error during code gen", (1,1)))
+        except:
+            parser_report.errors.append(CRError("Error during parsing unknow to parser", (1,1)))
+        
         return parser_report
 
 def main():
@@ -30,14 +47,11 @@ def main():
         expression = parser.parse(input_string, tracking=True)
         print(parser_report)
 
-        visitor = CodeGenVisitor()
-        visitor.visit(expression)
-
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
-        optimizer = IRGotoOptimizer()
-        irbuilder.ir.accept(optimizer)
+        #optimizer = IRGotoOptimizer()
+        #irbuilder.ir.accept(optimizer)
 
         codegen = IRCodeGenerator()
         codegen.visit(irbuilder.ir)

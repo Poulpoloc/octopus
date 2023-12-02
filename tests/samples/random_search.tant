@@ -1,0 +1,135 @@
+
+def uturn () { repeat 3 { turn right; } }
+
+
+tantacule main () {
+    slideto bounce_search;
+}
+
+
+looping tantacule bounce_search () {
+
+    if (food?here) {
+        pickup;
+        uturn();
+        slideto bounce_back;
+    }
+
+    if (!rock?ahead) { dig; move; slideback; }
+
+    slideto random_dir_mark; // DEAD END IS NOT CHECKED
+}
+
+
+looping tantacule random_dir_mark () {
+    // Choose randomly between 6 directions
+    roll 6
+    |-> { turn right;
+        if (rock?rightahead) {turn left; slideback;}
+        unmark(0); unmark(1); unmark(2); } // r 000
+
+    |-> { turn right; turn right;
+        if (rock?rightahead) {turn left; turn left; slideback;}
+        unmark(0); unmark(1); mark(2); } // rr 001
+
+    |-> { turn left;
+        if (rock?rightahead) {turn right; slideback;}
+        mark(0); mark(1); mark(2); } // l 010
+
+    |-> { turn left; turn left;
+        if (rock?rightahead) {turn right; turn right; slideback;}
+        unmark(0); mark(1); mark(2); } // ll 011
+
+    |-> { if (!empty?above) { slideback; }
+        mark(0); unmark(1); unmark(2);
+        dig up;
+        move up else { slideback; }
+        } // up 100
+        
+    |-> { if (!empty?below) { slideback; }
+        mark(0); unmark(1); mark(2);
+        dig down;
+        move down else { slideback; }
+        } // down 101
+
+    mark(4);
+    slideto bounce_search;
+}
+
+
+
+looping tantacule bounce_back () {
+
+    if (home?here) {
+        drop;
+        uturn();
+        while (home?here) { move; }
+        slideto bounce_search;
+    }
+
+    if (!marker(4)?here) {
+        move else {
+            if (rand(2)) {
+                turn left;
+            } else {
+                turn right;
+            }
+        }
+        slideback; }
+
+    read_and_move();
+    slideback;
+}
+
+
+def dig_move_up () {
+    if (!holeabove?here) { dig down; }
+    move down;
+}
+
+def dig_move_up () {
+    if (!holebelow?here) { dig down; }
+    move down;
+}
+
+
+def read_and_move () {
+
+    // Read three bits marker and move
+
+    if (!marker(0)?here) {
+        // 0xx
+        if (!marker(1)?here) {
+            // 00x
+            if (!marker(2)?here) {
+                // 000 : r
+                turn left;
+                move;
+            } else {
+                // 001 : rr
+                turn left; turn left;
+                move;
+            }
+        } else {
+            // 01x
+            if (!marker(2)?here) {
+                // 010 : l
+                turn right;
+                move;
+            } else {
+                // 011 : ll
+                turn right; turn right;
+                move;
+            }
+        }
+    } else {
+        // 1xx
+        if (!marker(2)?here) {
+            // 1x0 : up
+            dig_move_up();
+        } else {
+            // 1x1 : down
+            dig_move_down();
+        }
+    }
+}
