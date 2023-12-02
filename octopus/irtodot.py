@@ -24,9 +24,9 @@ class IRDotGenerator(IRVisitor):
     def visit_bloc(self, bloc: Bloc):
         self.current_bloc : Bloc = bloc
         if bloc == self.main_block:
-            self.output += f"    {bloc.identifier} [color=blue, label=\"{'{'}\n"
+            self.output += f"    {bloc.identifier} [penwidth={(len(bloc.predecessors)//3)+1},color=blue, label=\"{'{'}\n"
         else:
-            self.output += f"    {bloc.identifier} [label=\"{'{'}\n"
+            self.output += f"    {bloc.identifier} [penwidth={(len(bloc.predecessors)//3)+1},label=\"{'{'}\n"
         for instruction in bloc.instructions:
             self.visit(instruction)
         self.output += "    }}\"];\n"

@@ -21,7 +21,7 @@ class Bloc:
         Bloc.counter += 1
         self.identifier = Bloc.counter
         self.instructions = []
-        self.predecessors = []
+        self.predecessors : list[Bloc] = []
 
     def get_terminator(self):
         return self.instructions[-1]
@@ -67,6 +67,12 @@ class AsmSense(AsmTerminator):
     def get_successors(self):
         return [self.then, self.else_]
     
+    def replace(self, old, new):
+        if old == self.then:
+            self.then = new
+        elif old == self.else_:
+            self.else_ = new
+    
     def accept(self, visitor):
         visitor.visit_asm_sense(self)
 
@@ -94,6 +100,12 @@ class AsmPickup(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_pickup(self)
@@ -128,6 +140,12 @@ class AsmMove(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_move(self)
 
@@ -139,6 +157,12 @@ class AsmMoveUp(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_move_up(self)
@@ -152,6 +176,12 @@ class AsmMoveDown(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_move_down(self)
 
@@ -163,6 +193,12 @@ class AsmDig(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_dig(self)
@@ -176,6 +212,12 @@ class AsmFill(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_fill(self)
 
@@ -187,6 +229,12 @@ class AsmDigUp(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_dig_up(self)
@@ -200,6 +248,12 @@ class AsmDigDown(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_dig_down(self)
 
@@ -211,6 +265,12 @@ class AsmFillUp(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_fill_up(self)
@@ -224,6 +284,12 @@ class AsmFillDown(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_fill_down(self)
 
@@ -236,6 +302,12 @@ class AsmGrab(AsmTerminator):
     def get_successors(self):
         return [self.follower, self.handler]
     
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
+    
     def accept(self, visitor):
         visitor.visit_asm_grab(self)
 
@@ -247,6 +319,12 @@ class AsmAttack(AsmTerminator):
 
     def get_successors(self):
         return [self.follower, self.handler]
+    
+    def replace(self, old, new):
+        if old == self.follower:
+            self.follower = new
+        elif old == self.handler:
+            self.handler = new
     
     def accept(self, visitor):
         visitor.visit_asm_attack(self)
@@ -261,6 +339,12 @@ class AsmRoll(AsmTerminator):
     def get_successors(self):
         return [self.then, self.else_]
     
+    def replace(self, old, new):
+        if old == self.then:
+            self.then = new
+        elif old == self.else_:
+            self.else_ = new
+    
     def accept(self, visitor):
         visitor.visit_asm_roll(self)
     
@@ -273,5 +357,9 @@ class AsmGoto(AsmTerminator):
     def get_successors(self):
         return [self.target]
     
+    def replace(self, old, new):
+        if old == self.target:
+            self.target = new
+        
     def accept(self, visitor):
         visitor.visit_asm_goto(self)
