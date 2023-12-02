@@ -1,11 +1,16 @@
 from octopus.yacc import parser, parser_report
 from octopus.codegen import CodeGenVisitor
+from octopus.compiler_report import CompilerReport
 import argparse
 import os
 
 def get_report(path):
     with open(os.path.abspath(path), 'r') as f:
         input_string = f.read()
+        # Martin qui fait de la magie noire ...
+        # Ici martin décide de mélanger les objet avec la classe 
+        # Mais bon, ça marche, et on est en Python, on lui en veut pas
+        CompilerReport.reset(CompilerReport) # type: ignore
         expression = parser.parse(input_string, tracking=True)
         return parser_report
 
