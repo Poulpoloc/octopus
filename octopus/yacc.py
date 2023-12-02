@@ -3,7 +3,7 @@ import ply.yacc as yacc
 from octopus.lex import tokens
 import octopus.lang_ast as ast
 
-start = 'declaration'
+start = 'program'
 
 precedence = (
     ('left', 'OR'),
@@ -14,6 +14,18 @@ precedence = (
 def p_empty(p):
     'empty :'
     pass
+
+def p_declarations_many(p):
+    'declarations : declarations declaration'
+    p[0] = p[1]
+    p[0].append(p[2])
+def p_declarations_zero(p):
+    'declarations : empty'
+    p[0] = []
+
+def p_program(p):
+    'program : declarations'
+    p[0] = ast.Program(p[1])
 
 def p_base_tantacule_decl(p):
     'declaration : TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
@@ -42,7 +54,6 @@ def p_instructions_many(p):
     'instructions : instructions instruction'
     p[0] = p[1]
     p[0].append(p[2])
-
 def p_instructions_zero(p):
     'instructions : empty'
     p[0] = []
@@ -78,10 +89,7 @@ def p_instruction_pickup_else(p):
 
 def p_instruction_drop(p):
     'instruction : DROP SEMI'
-    p[0] = ast.Drop(None)
-def p_instruction_drop_else(p):
-    'instruction : DROP ELSE LBRACE instructions RBRACE'
-    p[0] = ast.Drop(p[4])
+    p[0] = ast.Drop()
 
 def p_direction_left(p):
     'direction : LEFT'

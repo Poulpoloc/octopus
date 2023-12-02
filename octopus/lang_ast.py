@@ -1,5 +1,16 @@
 from enum import Enum
 
+class Program:
+    def __init__(self, declarations):
+        self.declarations = declarations
+
+    def __repr__(self):
+        return self.declarations.__repr__()
+
+    def accept(self, visitor):
+        visitor.visit_program(self)
+
+
 class Declaration:
     pass
 
@@ -11,6 +22,9 @@ class Tantacule(Declaration):
 
     def __repr__(self):
         return f"(tantacule (loop = {self.loop}) {self.name} {self.instructions})"
+
+    def accept(self, visitor):
+        visitor.visit_tantacule(self)
 
 class Direction(Enum):
     LEFT = 1
@@ -58,12 +72,18 @@ class Sense(Condition):
     def __repr__(self):
         return f"(? {self.smell} {self.sensedir})"
 
+    def accept(self, visitor):
+        visitor.visit_sense(self)
+
 class Rand(Condition):
     def __init__(self, faces_count):
         self.faces_count = faces_count
 
     def __repr__(self):
         return f"(rand {self.faces_count})"
+
+    def accept(self, visitor):
+        visitor.visit_rand(self)
 
 class Or(Condition):
     def __init__(self, left, right):
@@ -73,6 +93,9 @@ class Or(Condition):
     def __repr__(self):
         return f"(or {self.left} {self.right})"
 
+    def accept(self, visitor):
+        visitor.visit_or(self)
+
 class And(Condition):
     def __init__(self, left, right):
         self.left = left
@@ -81,6 +104,8 @@ class And(Condition):
     def __repr__(self):
         return f"(and {self.left} {self.right})"
 
+    def accept(self, visitor):
+        visitor.visit_and(self)
 
 class Instruction():
     pass
@@ -93,6 +118,9 @@ class Repeat(Instruction):
     def __repr__(self):
         return f"REPEAT {self.number} {self.instructions}"
 
+    def accept(self, visitor):
+        visitor.visit_repeat(self)
+
 class IfThenElse(Instruction):
     def __init__(self, condition, then, else_):
         self.condition = condition
@@ -102,6 +130,9 @@ class IfThenElse(Instruction):
     def __repr__(self):
         return f"(ifthenelse {self.condition} {self.then} {self.else_})"
 
+    def accept(self, visitor):
+        visitor.visit_ifthenelse(self)
+
 class SlideTo(Instruction):
     def __init__(self, tantacule):
         self.tantacule = tantacule
@@ -109,12 +140,18 @@ class SlideTo(Instruction):
     def __repr__(self):
         return f"SLIDETO {self.tantacule}"
 
+    def accept(self, visitor):
+        visitor.visit_slideto(self)
+
 class SlideBack(Instruction):
     def __init__(self):
         pass
 
     def __repr__(self):
         return f"SLIDEBACK"
+
+    def accept(self, visitor):
+        visitor.visit_slideback(self)
 
 class Mark(Instruction):
     def __init__(self, index):
@@ -124,6 +161,9 @@ class Mark(Instruction):
     def __repr__(self):
         return f"MARK {self.index}"
 
+    def accept(self, visitor):
+        visitor.visit_mark(self)
+
 class Unmark(Instruction):
     def __init__(self, index):
         self.cost = 1
@@ -131,6 +171,9 @@ class Unmark(Instruction):
 
     def __repr__(self):
         return f"UNMARK {self.index}"
+
+    def accept(self, visitor):
+        visitor.visit_unmark(self)
 
 class PickUp(Instruction):
     def __init__(self, handler):
@@ -143,16 +186,18 @@ class PickUp(Instruction):
         else:
             return f"PICKUP else {self.handler}"
 
+    def accept(self, visitor):
+        visitor.visit_pickup(self)
+
 class Drop(Instruction):
     def __init__(self, handler):
         self.cost = 5
-        self.handler = handler
 
     def __repr__(self):
-        if self.handler is None:
-            return "DROP"
-        else:
-            return f"DROP else {self.handler}"
+        return "DROP"
+
+    def accept(self, visitor):
+        visitor.visit_drop(self)
 
 class Turn(Instruction):
     def __init__(self, direction):
@@ -161,6 +206,9 @@ class Turn(Instruction):
 
     def __repr__(self):
         return f"TURN {self.direction}"
+
+    def accept(self, visitor):
+        visitor.visit_turn(self)
 
 class Move(Instruction):
     def __init__(self, handler, move_dir):
@@ -174,6 +222,9 @@ class Move(Instruction):
         else:
             return f"MOVE {self.move_dir} else {self.handler}"
 
+    def accept(self, visitor):
+        visitor.visit_move(self)
+
 class Dig(Instruction):
     def __init__(self, handler, move_dir):
         self.cost = 25
@@ -185,6 +236,9 @@ class Dig(Instruction):
             return f"DIG {self.move_dir}"
         else:
             return f"DIG {self.move_dir} else {self.handler}"
+
+    def accept(self, visitor):
+        visitor.visit_dig(self)
 
 class Fill(Instruction):
     def __init__(self, handler, move_dir):
@@ -198,6 +252,9 @@ class Fill(Instruction):
         else:
             return f"FILL {self.move_dir} else {self.handler}"
 
+    def accept(self, visitor):
+        visitor.visit_fill(self)
+
 class Grab(Instruction):
     def __init__(self, handler):
         self.cost = 50
@@ -209,6 +266,9 @@ class Grab(Instruction):
         else:
             return f"GRAB else {self.handler}"
 
+    def accept(self, visitor):
+        visitor.visit_grab(self)
+
 class Attack(Instruction):
     def __init__(self, handler):
         self.cost = 30
@@ -219,3 +279,6 @@ class Attack(Instruction):
             return "ATTACK"
         else:
             return f"ATTACK else {self.handler}"
+
+    def accept(self, visitor):
+        visitor.visit_attack(self)
