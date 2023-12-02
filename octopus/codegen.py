@@ -1,6 +1,6 @@
 from octopus.ast_visitor import AstVisitor
 import octopus.lang_ast as ast
-from octopus.compiler_report import CompilerReport
+from octopus.compiler_report import CompilerReport, CRError
 
 codegen_report = CompilerReport()
 
@@ -11,6 +11,7 @@ class CodeGenVisitor(AstVisitor):
         self.current_tantacule = ""
         self.label_then = ""
         self.label_else = ""
+        self.tantacules = {}
 
     def fresh_label(self):
         self.label_counter += 1
@@ -86,8 +87,9 @@ class CodeGenVisitor(AstVisitor):
 
     # PROGRAM
     def visit_program(self, program):
+        self.tantacules = program.tantacules
         if "main" not in program.tantacules:
-            codegen_report.error(Error("No tantacule main"), None)
+            codegen_report.error(CRError("No tantacule main", None))
         self.visit(program.tantacules["main"])
         for declaration in program.declarations:
             if declaration.name != "main":
@@ -100,6 +102,9 @@ class CodeGenVisitor(AstVisitor):
         for instruction in tantacule.instructions:
             self.visit(instruction)
         self.write_code(f"Goto {tantacule.name}")
+
+    def visit_macro(self, macro):
+        pass
 
     # CONDITION
     def visit_sense(self, sense):
@@ -164,7 +169,6 @@ class CodeGenVisitor(AstVisitor):
         label_else = self.label_else
         label_in = self.fresh_label()
 
-        print(self.label_then, self.label_else, label_in)
         self.write_code(f"{label_in}:")
         self.visit(while_.condition)
         self.write_code(f"{label_then}:")
@@ -172,6 +176,15 @@ class CodeGenVisitor(AstVisitor):
             self.visit(instruction)
         self.write_code(f"Goto {label_in}")
         self.write_code(f"{label_else}:")
+
+    def visit_call(self, call):
+        if call.name not in self.tantacules:
+            error = CRError("Undefined macro.", call.location_span)
+            codegen_report.error(error)
+            return
+        for instruction in self.tantacules[call.name].instructions:
+            self.visit(instruction)
+
 
     def visit_slideto(self, slideto):
         self.write_code(f"Goto {slideto.tantacule}")

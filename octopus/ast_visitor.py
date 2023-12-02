@@ -12,6 +12,10 @@ class AstVisitor():
         for instruction in tantacule.instructions:
             self.visit(instruction)
 
+    def visit_macro(self, macro):
+        for instruction in macro.instructions:
+            self.visit(instruction)
+
     # CONDITION
     def visit_sense(self, sense):
         pass
@@ -46,6 +50,9 @@ class AstVisitor():
         self.visit(while_.condition)
         for instruction in while_.instructions:
             self.visit(instruction)
+
+    def visit_call(self, call):
+        pass
 
     def visit_slideto(self, slideto):
         pass

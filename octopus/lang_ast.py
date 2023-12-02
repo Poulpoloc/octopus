@@ -30,6 +30,18 @@ class Tantacule(Declaration):
     def accept(self, visitor):
         visitor.visit_tantacule(self)
 
+class Macro(Declaration):
+    def __init__(self, name, instructions):
+        self.name = name
+        self.instructions = instructions
+
+    def __repr__(self):
+        return f"(macro {self.name} {self.instructions})"
+
+    def accept(self, visitor):
+        visitor.visit_macro(self)
+
+
 class Direction(Enum):
     LEFT = 1
     RIGHT = 2
@@ -167,6 +179,17 @@ class While(Instruction):
 
     def accept(self, visitor):
         visitor.visit_while(self)
+
+class Call(Instruction):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"CALL {self.name}"
+
+    def accept(self, visitor):
+        visitor.visit_call(self)
+
 
 class SlideTo(Instruction):
     def __init__(self, tantacule):

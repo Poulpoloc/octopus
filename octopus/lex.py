@@ -3,6 +3,7 @@ from ply.lex import TOKEN
 
 keywords = {
     "tantacule": 'TANTACULE',
+    "def": 'DEF',
     "looping": 'LOOP',
     "slideto": 'SLIDETO',
     "slideback": 'SLIDEBACK',

@@ -42,6 +42,10 @@ def p_loop_tantacule_decl(p):
     'declaration : LOOP TANTACULE ID LPAR RPAR LBRACE instructions RBRACE'
     p[0] = ast.Tantacule(p[3], p[7], loop=True)
     save_location(p)
+def p_macro_decl(p):
+    'declaration : DEF ID LPAR RPAR LBRACE instructions RBRACE'
+    p[0] = ast.Macro(p[2], p[6])
+    save_location(p)
 
 def p_condition_par(p):
     'condition : LPAR condition RPAR'
@@ -98,6 +102,11 @@ def p_instruction_ifelse(p):
 def p_instruction_while(p):
     'instruction : WHILE LPAR condition RPAR LBRACE instructions RBRACE'
     p[0] = ast.While(condition=p[3], instructions=p[6])
+    save_location(p)
+
+def p_instructin_call(p):
+    'instruction : ID LPAR RPAR SEMI'
+    p[0] = ast.Call(p[1])
     save_location(p)
 
 def p_instruction_slideto(p):
