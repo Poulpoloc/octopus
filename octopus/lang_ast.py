@@ -98,6 +98,16 @@ class Rand(Condition):
     def accept(self, visitor):
         visitor.visit_rand(self)
 
+class Not(Condition):
+    def __init__(self, condition):
+        self.condition = condition
+
+    def __repr__(self):
+        return f"(not {self.condition})"
+
+    def accept(self, visitor):
+        visitor.visit_not(self)
+
 class Or(Condition):
     def __init__(self, left, right):
         self.left = left

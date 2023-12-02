@@ -11,7 +11,7 @@ class CodeGenVisitor(AstVisitor):
 
     def fresh_label(self):
         self.label_counter += 1
-        return f"L{self.label_counter}"
+        return f"l{self.label_counter}"
 
     def write_code(self, code):
         self.code = "\n".join([
@@ -104,6 +104,10 @@ class CodeGenVisitor(AstVisitor):
 
     def visit_rand(self, rand):
         self.write_code(f"Roll {rand.faces_count} {self.label_then} {self.label_else}")
+
+    def visit_not(self, not_):
+        self.label_then, self.label_else = self.label_else, self.label_then
+        self.visit(not_.condition)
 
     def visit_or(self, or_):
         lbl_else1 = self.fresh_label()

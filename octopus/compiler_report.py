@@ -23,7 +23,7 @@ class CompilerReport:
     def __repr__(self):
         return f"REPORT:\n{self.warnings}\n{self.errors}"
 
-class Warning:
+class CRWarning:
     def __init__(self, message, location_span):
         self.message = message
         self.location_span = location_span
@@ -31,5 +31,10 @@ class Warning:
     def __repr__(self):
         return f"WARNING: {self.message} at {self.location_span}"
 
-class Error:
-    pass
+class CRError:
+    def __init__(self, message, location_span):
+        self.message = message
+        self.location_span = location_span
+
+    def __repr__(self):
+        return f"ERROR: {self.message} at {self.location_span}"

@@ -3,7 +3,7 @@ import ply.yacc as yacc
 from octopus.lex import tokens
 import octopus.lang_ast as ast
 
-from octopus.compiler_report import CompilerReport
+from octopus.compiler_report import CompilerReport, CRWarning, CRError
 parser_report = CompilerReport()
 
 start = 'program'
@@ -11,6 +11,7 @@ start = 'program'
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
+    ('nonassoc', 'BANG'),
     ('nonassoc', 'QMARK'),
 )
 
@@ -49,6 +50,10 @@ def p_condition_random(p):
     'condition : RAND LPAR NUMBER RPAR'
     p[0] = ast.Rand(p[3])
 
+def p_condition_not(p):
+    'condition : BANG condition'
+    p[0] = ast.Not(p[2])
+
 def p_condition_or(p):
     'condition : condition OR condition'
     p[0] = ast.Or(p[1], p[3])
@@ -70,6 +75,10 @@ def p_instruction_repeat(p):
     p[0] = ast.Repeat(p[2], p[4])
 
 def p_instruction_if(p):
+    'instruction : IF LPAR condition RPAR LBRACE instructions RBRACE'
+    p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=[])
+
+def p_instruction_ifelse(p):
     'instruction : IF LPAR condition RPAR LBRACE instructions RBRACE ELSE LBRACE instructions RBRACE'
     p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=p[10])
 
@@ -83,11 +92,14 @@ def p_instruction_slideback(p):
 def p_instruction_mark(p):
     'instruction : MARK LPAR NUMBER RPAR SEMI'
     if p[3] >= 8:
-        warning = Warning("Marker is too large.", p.lexspan(3))
+        warning = CRWarning("Marker is too large.", p.lexspan(3))
         parser_report.warning(warning)
     p[0] = ast.Mark(p[3])
 def p_instruction_unmark(p):
     'instruction : UNMARK LPAR NUMBER RPAR SEMI'
+    if p[3] >= 8:
+        warning = CRWarning("Marker is too large.", p.lexspan(3))
+        parser_report.warning(warning)
     p[0] = ast.Unmark(p[3])
 
 def p_instruction_pickup(p):
@@ -95,6 +107,9 @@ def p_instruction_pickup(p):
     p[0] = ast.PickUp(None)
 def p_instruction_pickup_else(p):
     'instruction : PICKUP ELSE LBRACE instructions RBRACE'
+    if len(p[4]) == 0:
+        warning = CRWarning("Empty handler.", (p.lexpos(3), p.lexpos(5)))
+        parser_report.warning(warning)
     p[0] = ast.PickUp(p[4])
 
 def p_instruction_drop(p):
@@ -227,6 +242,11 @@ def p_instruction_attack_else(p):
 
 
 def p_error(t):
-    print(f"Syntax error, unexpected token {t.type}")
+    if t is not None:
+        error = CRError("Syntax Error.", (t.lexpos, t.lexpos))
+        parser_report.error(error)
+        print(f"Syntax error, unexpected token {t.type}")
+    else:
+        print(f"Syntax error, unexpected token {t.type}")
 
 parser = yacc.yacc()

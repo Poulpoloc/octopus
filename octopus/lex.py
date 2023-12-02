@@ -61,6 +61,7 @@ tokens = [
     'RBRACE',
     'SEMI',
     'QMARK',
+    'BANG',
     'OR',
     'AND',
 ] + list(keywords.values())
@@ -90,6 +91,7 @@ t_LBRACE = r'\{'
 t_RBRACE = r'\}'
 t_SEMI = r';'
 t_QMARK = r'\?'
+t_BANG = r'\!'
 t_OR = r'\|\|'
 t_AND = r'&&'
 

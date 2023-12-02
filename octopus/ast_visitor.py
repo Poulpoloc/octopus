@@ -19,6 +19,9 @@ class AstVisitor():
     def visit_rand(self, rand):
         pass
 
+    def visit_not(self, not_):
+        self.visit(not_.condition)
+
     def visit_or(self, or_):
         self.visit(or_.left)
         self.visit(or_.right)
