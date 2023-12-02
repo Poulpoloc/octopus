@@ -141,11 +141,11 @@ class CodeGenVisitor(AstVisitor):
         self.write_code(f"{self.label_then}:")
         for instruction in ifthenelse.then:
             self.visit(instruction)
-            self.write_code(f"Goto {label_out}")
+        self.write_code(f"Goto {label_out}")
         self.write_code(f"{self.label_else}:")
         for instruction in ifthenelse.else_:
             self.visit(instruction)
-            self.write_code(f"Goto {label_out}")
+        self.write_code(f"Goto {label_out}")
         self.write_code(f"{label_out}:")
 
     def visit_slideto(self, slideto):
