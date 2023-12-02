@@ -50,8 +50,8 @@ def main():
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
-        optimizer = IRGotoOptimizer()
-        irbuilder.ir.accept(optimizer)
+        #optimizer = IRGotoOptimizer()
+        #irbuilder.ir.accept(optimizer)
 
         codegen = IRCodeGenerator()
         codegen.visit(irbuilder.ir)
