@@ -230,8 +230,16 @@ class IRBuilderVisitor(AstVisitor):
             error = CRError("Undefined macro.", call.location_span)
             ir_report.error(error)
             return
+        save_map = self.tantacules
+        for arg_decl, arg_value in zip(self.tantacules[call.name].args, call.args):
+            arg_type, arg_name = arg_decl
+            if arg_type == "bool":
+                self.tantacules[arg_name] = ast.ConstBool(arg_name, arg_value)
+            else:
+                self.tantacules[arg_name] = ast.ConstInt(arg_name, arg_value)
         for instruction in self.tantacules[call.name].instructions:
             self.visit(instruction)
+        self.tantacules = save_map
 
 
     def visit_slideto(self, slideto):

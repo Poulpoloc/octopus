@@ -48,8 +48,9 @@ class Tantacule(Declaration):
         visitor.visit_tantacule(self)
 
 class Macro(Declaration):
-    def __init__(self, name, instructions):
+    def __init__(self, name, args, instructions):
         self.name = name
+        self.args = args
         self.instructions = instructions
 
     def __repr__(self):
@@ -240,8 +241,9 @@ class Roll(Instruction):
         visitor.visit_roll(self)
 
 class Call(Instruction):
-    def __init__(self, name):
+    def __init__(self, name, args):
         self.name = name
+        self.args = args
 
     def __repr__(self):
         return f"CALL {self.name}"

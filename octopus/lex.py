@@ -65,6 +65,7 @@ tokens = [
     'LBRACE',
     'RBRACE',
     'SEMI',
+    'COMMA',
     'QMARK',
     'BANG',
     'OR',
@@ -97,6 +98,7 @@ t_RPAR = r'\)'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
 t_SEMI = r';'
+t_COMMA = r','
 t_QMARK = r'\?'
 t_BANG = r'\!'
 t_OR = r'\|\|'
