@@ -1,0 +1,1 @@
+from octopus.main import get_report
