@@ -105,7 +105,7 @@ class IRBuilderVisitor(AstVisitor):
 
         for instruction in tantacule.instructions:
             self.visit(instruction)
-        self.current_bloc.add_terminator(ir.AsmGoto(self.ir.main_bloc))
+        self.current_bloc.add_terminator(ir.AsmGoto(self.tant_entry[tantacule.name]))
 
     def visit_macro(self, macro):
         pass

@@ -1,6 +1,7 @@
 from octopus.yacc import parser, parser_report
 from octopus.codegen import CodeGenVisitor
 from octopus.ir_builder  import IRBuilderVisitor
+from octopus.ir_codegen  import IRCodeGenerator
 from octopus.compiler_report import CompilerReport
 import argparse
 import os
@@ -33,7 +34,11 @@ def main():
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
-        assembly_code = visitor.get_code()
+        codegen = IRCodeGenerator()
+        codegen.visit(irbuilder.ir)
+
+        #assembly_code = visitor.get_code()
+        assembly_code = codegen.code.to_string()
         if args.output:
             with open(args.output,'w') as fo:
                 fo.write(assembly_code)
