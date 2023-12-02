@@ -29,8 +29,6 @@ def main():
         visitor = CodeGenVisitor()
         visitor.visit(expression)
 
-        #print(expression)
-
         assembly_code = visitor.get_code()
         if args.output:
             with open(args.output,'w') as fo:
