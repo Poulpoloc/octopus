@@ -215,10 +215,10 @@ class IRBuilderVisitor(AstVisitor):
 
 
     def visit_slideto(self, slideto):
-        self.add_terminator(ir.AsmGoto(self.tant_entry[slideto.tantacule]))
+        self.current_bloc.add_terminator(ir.AsmGoto(self.tant_entry[slideto.tantacule]))
 
     def visit_slideback(self, slideback):
-        self.add_terminator(ir.AsmGoto(self.current_tantacule))
+        self.current_bloc.add_terminator(ir.AsmGoto(self.current_tantacule))
 
     def visit_mark(self, mark):
         self.current_bloc.add_instruction(ir.AsmMark(mark.index))
