@@ -1,5 +1,6 @@
 from octopus.yacc import parser, parser_report
 from octopus.codegen import CodeGenVisitor
+from octopus.ir_builder  import IRBuilderVisitor
 from octopus.compiler_report import CompilerReport
 import argparse
 import os
@@ -28,6 +29,9 @@ def main():
 
         visitor = CodeGenVisitor()
         visitor.visit(expression)
+
+        irbuilder = IRBuilderVisitor()
+        irbuilder.visit(expression)
 
         assembly_code = visitor.get_code()
         if args.output:
