@@ -9,6 +9,7 @@ keywords = {
     "repeat": 'REPEAT',
     "if": 'IF',
     "else": 'ELSE',
+    "while": 'WHILE',
 
     "mark": 'MARK',
     "unmark": 'UNMARK',

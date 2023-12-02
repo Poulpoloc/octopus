@@ -95,6 +95,11 @@ def p_instruction_ifelse(p):
     p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=p[10])
     save_location(p)
 
+def p_instruction_while(p):
+    'instruction : WHILE LPAR condition RPAR LBRACE instructions RBRACE'
+    p[0] = ast.While(condition=p[3], instructions=p[6])
+    save_location(p)
+
 def p_instruction_slideto(p):
     'instruction : SLIDETO ID SEMI'
     p[0] = ast.SlideTo(p[2])

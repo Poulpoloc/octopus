@@ -42,6 +42,11 @@ class AstVisitor():
         for instruction in ifthenelse.else_:
             self.visit(instruction)
 
+    def visit_while(self, while_):
+        self.visit(while_.condition)
+        for instruction in while_.instructions:
+            self.visit(instruction)
+
     def visit_slideto(self, slideto):
         pass
 

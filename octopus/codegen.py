@@ -1,5 +1,8 @@
 from octopus.ast_visitor import AstVisitor
 import octopus.lang_ast as ast
+from octopus.compiler_report import CompilerReport
+
+codegen_report = CompilerReport()
 
 class CodeGenVisitor(AstVisitor):
     def __init__(self):
@@ -147,6 +150,19 @@ class CodeGenVisitor(AstVisitor):
             self.visit(instruction)
         self.write_code(f"Goto {label_out}")
         self.write_code(f"{label_out}:")
+
+    def visit_while(self, while_):
+        self.label_then = self.fresh_label()
+        self.label_else = self.fresh_label()
+        label_in = self.fresh_label()
+
+        self.write_code(f"{label_in}:")
+        self.visit(while_.condition)
+        self.write_code(f"{self.label_then}:")
+        for instruction in while_.instructions:
+            self.visit(instruction)
+        self.write_code(f"Goto {label_in}")
+        self.write_code(f"{self.label_else}:")
 
     def visit_slideto(self, slideto):
         self.write_code(f"Goto {slideto.tantacule}")

@@ -157,6 +157,17 @@ class IfThenElse(Instruction):
     def accept(self, visitor):
         visitor.visit_ifthenelse(self)
 
+class While(Instruction):
+    def __init__(self, condition, instructions):
+        self.condition = condition
+        self.instructions = instructions
+
+    def __repr__(self):
+        return f"(while {self.condition} {self.instructions})"
+
+    def accept(self, visitor):
+        visitor.visit_while(self)
+
 class SlideTo(Instruction):
     def __init__(self, tantacule):
         self.tantacule = tantacule
