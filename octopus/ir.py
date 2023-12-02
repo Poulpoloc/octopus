@@ -258,7 +258,7 @@ class AsmRoll(AsmTerminator):
         self.else_ = else_
         self.cost = 1
 
-    def get_successor(self):
+    def get_successors(self):
         return [self.then, self.else_]
     
     def accept(self, visitor):
