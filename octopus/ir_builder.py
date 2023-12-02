@@ -261,8 +261,8 @@ class IRBuilderVisitor(AstVisitor):
         if pickup.handler is None:
             i.handler = follower
         else:
-            handler = self.new_bloc()
-            self.current_bloc = handler
+            i.handler = self.new_bloc()
+            self.current_bloc = i.handler
             for instruction in pickup.handler:
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))
@@ -350,8 +350,8 @@ class IRBuilderVisitor(AstVisitor):
         if grab.handler is None:
             i.handler = follower
         else:
-            handler = self.new_bloc()
-            self.current_bloc = handler
+            i.handler = self.new_bloc()
+            self.current_bloc = i.handler
             for instruction in grab.handler:
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))
@@ -365,8 +365,8 @@ class IRBuilderVisitor(AstVisitor):
         if attack.handler is None:
             i.handler = follower
         else:
-            handler = self.new_bloc()
-            self.current_bloc = handler
+            i.handler = self.new_bloc()
+            self.current_bloc = i.handler
             for instruction in attack.handler:
                 self.visit(instruction)
             self.current_bloc.add_instruction(ir.AsmGoto(follower))

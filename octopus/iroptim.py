@@ -15,7 +15,10 @@ class IRGotoOptimizer(IRVisitor):
         if(isinstance(bloc.get_terminator(), AsmGoto)):
             if len(bloc.predecessors) == 0: # Dead end, delete
                 goto : AsmGoto = bloc.get_terminator()
-                goto.target.predecessors.remove(bloc)
+                try:
+                    goto.target.predecessors.remove(bloc)
+                except:
+                    pass
                 self.ir.blocs.remove(bloc)
                 if bloc == self.ir.main_bloc:
                     self.ir.main_bloc = goto.target
