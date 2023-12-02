@@ -8,20 +8,10 @@ from octopus.compiler_report import CompilerReport
 import argparse
 import os
 
-def get_report(path):
-    with open(os.path.abspath(path), 'r') as f:
-        input_string = f.read()
-        # Martin qui fait de la magie noire ...
-        # Ici martin décide de mélanger les objet avec la classe 
-        # Mais bon, ça marche, et on est en Python, on lui en veut pas
-        CompilerReport.reset(CompilerReport) # type: ignore
-        expression = parser.parse(input_string, tracking=True)
-        return parser_report
-
-def main():
-    arg_parser = argparse.ArgumentParser(description='Compile ant')
+def dotter():
+    arg_parser = argparse.ArgumentParser(description='Draw CFG ant')
     arg_parser.add_argument('input', type=str, 
-                    help='File to compile')
+                    help='File to draw')
     arg_parser.add_argument('--output', "-o", type=str, 
                     help='File to store')
     args = arg_parser.parse_args()
@@ -39,17 +29,18 @@ def main():
         optimizer = IRGotoOptimizer()
         irbuilder.ir.accept(optimizer)
 
-        codegen = IRCodeGenerator()
-        codegen.visit(irbuilder.ir)
+        ir = irbuilder.ir
 
-        #assembly_code = visitor.get_code()
-        assembly_code = codegen.code.to_string()
+        gen = IRDotGenerator()
+        text = gen.generate(ir)
+
         if args.output:
-            with open(args.output,'w') as fo:
-                fo.write(assembly_code)
+            with open(f"{args.output}.dot",'w') as fo:
+                fo.write(text)
+            os.system(f"dot -T png -o {args.output} {args.output}.dot")
+            os.system(f"rm {args.output}.dot")
         else:
-            print("Produced code:")
-            print(assembly_code)
+            print(text)
 
 if "__main__" in __name__:
-    main()
+    dotter()
