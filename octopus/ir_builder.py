@@ -16,6 +16,11 @@ class IRBuilderVisitor(AstVisitor):
         self.tantacules = {}
         self.tant_entry = {}
 
+    def new_bloc(self):
+       b = ir.Bloc()
+       self.ir.add_bloc(b)
+       return b
+
     def move_dir(self, move_dir):
         match move_dir:
             case ast.MoveDir.FORWARD:
@@ -80,7 +85,7 @@ class IRBuilderVisitor(AstVisitor):
         self.tantacules = program.tantacules
         for tantacule in program.declarations:
             if isinstance(tantacule, ast.Tantacule):
-                self.tant_entry[tantacule.name] = ir.Bloc()
+                self.tant_entry[tantacule.name] = self.new_bloc()
 
         if "main" not in program.tantacules:
             ir_report.error(CRError("No tantacule main", None))
@@ -94,7 +99,6 @@ class IRBuilderVisitor(AstVisitor):
     def visit_tantacule(self, tantacule):
         self.current_bloc = self.tant_entry[tantacule.name]
         self.current_tantacule = self.current_bloc
-        self.ir.add_bloc(self.current_bloc)
 
         if tantacule.name == "main":
             self.ir.set_main_bloc(self.current_bloc)
@@ -121,7 +125,7 @@ class IRBuilderVisitor(AstVisitor):
         self.bloc_then, self.bloc_else = self.bloc_else, self.bloc_then
 
     def visit_or(self, or_):
-        bloc_else1 = ir.Bloc()
+        bloc_else1 = self.new_bloc()
         else_ = self.bloc_else
         self.bloc_else = bloc_else1
         self.visit(or_.left)
@@ -130,7 +134,7 @@ class IRBuilderVisitor(AstVisitor):
         self.visit(or_.right)
 
     def visit_and(self, and_):
-        bloc_then1 = ir.Bloc()
+        bloc_then1 = self.new_bloc()
         then = self.bloc_then
         self.bloc_then = bloc_then1
         self.visit(and_.left)
@@ -145,9 +149,9 @@ class IRBuilderVisitor(AstVisitor):
                 self.visit(instruction)
 
     def visit_ifthenelse(self, ifthenelse):
-        target = ir.Bloc()
-        then = ir.Bloc()
-        else_ = ir.Bloc()
+        target = self.new_bloc()
+        then = self.new_bloc()
+        else_ = self.new_bloc()
         self.bloc_then = then
         self.bloc_else = else_
 
@@ -166,9 +170,9 @@ class IRBuilderVisitor(AstVisitor):
         self.current_bloc = target
 
     def visit_while(self, while_):
-        target = ir.Bloc()
-        cond = ir.Bloc()
-        body = ir.Bloc()
+        target = self.new_bloc()
+        cond = self.new_bloc()
+        body = self.new_bloc()
         self.current_bloc.add_terminator(ir.AsmGoto(cond))
 
         self.current_bloc = cond
@@ -223,13 +227,13 @@ class IRBuilderVisitor(AstVisitor):
         self.current_bloc.add_instruction(ir.AsmUnmark(mark.index))
 
     def visit_pickup(self, pickup):
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         i = ir.AsmPickup(follower, None)
         b = self.current_bloc
         if pickup.handler is None:
             i.handler = follower
         else:
-            handler = ir.Bloc()
+            handler = self.new_bloc()
             self.current_bloc = handler
             for instruction in pickup.handler:
                 self.visit(instruction)
@@ -249,7 +253,7 @@ class IRBuilderVisitor(AstVisitor):
 
     def visit_move(self, move):
         b = self.current_bloc
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         if move.move_dir == ast.MoveDir.FORWARD:
             i = ir.AsmMove(follower, None)
         if move.move_dir == ast.MoveDir.UP:
@@ -260,7 +264,7 @@ class IRBuilderVisitor(AstVisitor):
         if move.handler is None:
             i.handler = follower
         else:
-            i.handler = ir.Bloc()
+            i.handler = self.new_bloc()
             self.current_bloc = i.handler
             for instruction in move.handler:
                 self.visit(instruction)
@@ -271,7 +275,7 @@ class IRBuilderVisitor(AstVisitor):
 
     def visit_dig(self, dig):
         b = self.current_bloc
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         if dig.move_dir == ast.MoveDir.FORWARD:
             i = ir.AsmDig(follower, None)
         if dig.move_dir == ast.MoveDir.UP:
@@ -282,7 +286,7 @@ class IRBuilderVisitor(AstVisitor):
         if dig.handler is None:
             i.handler = follower
         else:
-            i.handler = ir.Bloc()
+            i.handler = self.new_bloc()
             self.current_bloc = i.handler
             for instruction in dig.handler:
                 self.visit(instruction)
@@ -292,7 +296,7 @@ class IRBuilderVisitor(AstVisitor):
 
     def visit_fill(self, fill):
         b = self.current_bloc
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         if fill.move_dir == ast.MoveDir.FORWARD:
             i = ir.AsmFill(follower, None)
         if fill.move_dir == ast.MoveDir.UP:
@@ -303,7 +307,7 @@ class IRBuilderVisitor(AstVisitor):
         if fill.handler is None:
             i.handler = follower
         else:
-            i.handler = ir.Bloc()
+            i.handler = self.new_bloc()
             self.current_bloc = i.handler
             for instruction in fill.handler:
                 self.visit(instruction)
@@ -312,13 +316,13 @@ class IRBuilderVisitor(AstVisitor):
         self.current_bloc = follower
 
     def visit_grab(self, grab):
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         i = ir.AsmGrab(follower, None)
         b = self.current_bloc
         if grab.handler is None:
             i.handler = follower
         else:
-            handler = ir.Bloc()
+            handler = self.new_bloc()
             self.current_bloc = handler
             for instruction in grab.handler:
                 self.visit(instruction)
@@ -327,13 +331,13 @@ class IRBuilderVisitor(AstVisitor):
         current_bloc = follower
 
     def visit_attack(self, attack):
-        follower = ir.Bloc()
+        follower = self.new_bloc()
         i = ir.AsmAttack(follower, None)
         b = self.current_bloc
         if attack.handler is None:
             i.handler = follower
         else:
-            handler = ir.Bloc()
+            handler = self.new_bloc()
             self.current_bloc = handler
             for instruction in attack.handler:
                 self.visit(instruction)
