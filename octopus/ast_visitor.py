@@ -47,6 +47,9 @@ class AstVisitor():
         self.visit(and_.right)
 
     # INSTRUCTION
+    def visit_assign(self, assign):
+        pass
+
     def visit_repeat(self, repeat):
         for instruction in self.instructions:
             self.visit(instruction)

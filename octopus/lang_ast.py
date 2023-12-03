@@ -207,6 +207,17 @@ class And(Condition):
 class Instruction():
     pass
 
+class Assign(Instruction):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return f"(:= {self.name} {self.value})"
+
+    def accept(self, visitor):
+        visitor.visit_assign(self)
+
 class Repeat(Instruction):
     def __init__(self, number, instructions):
         self.number = number

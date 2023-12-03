@@ -53,7 +53,10 @@ class IRBuilderVisitor(AstVisitor):
         else:
             if assign and index.name in assign:
                 return assign[index.name]
-            return self.tantacules[index.name].value
+            if index.name in self.tantacules:
+                return self.get_integer(self.tantacules[index.name].value, assign=assign)
+            return None
+
 
     def smell(self, smell):
         match smell:
@@ -100,6 +103,40 @@ class IRBuilderVisitor(AstVisitor):
     def new_bloc_structure(self):
         return self.create_bloc_structure(list(self.variables.values()))
 
+    def fix_variable(self, name, value):
+        follower = self.new_bloc_structure()
+        backup_maxvalue = self.variables[name]
+
+        old_var = self.variables.copy()
+        new_var = self.variables.copy()
+        del new_var[name]
+
+        bs = self.create_bloc_structure(list(new_var.values()))
+        for (assg, bloc) in self.iter_variables():
+            if assg[name] != value:
+                i = ir.AsmGoto(self.lookup(assg, follower))
+                bloc.add_terminator(i)
+            else:
+                del assg[name]
+                self.variables = new_var
+                i = ir.AsmGoto(self.lookup(assg, bs))
+                self.variables = old_var
+                bloc.add_terminator(i)
+        self.bloc_structure = bs
+        self.tantacules[name] = ast.ConstInt(name, value)
+        return name, value, backup_maxvalue, follower
+
+    def restore_backup(self, backup):
+        name, value, backup_maxvalue, follower = backup
+        for (asg, bloc) in self.iter_variables():
+            asg[name] = value
+            i = ir.AsmGoto(self.lookup(asg, follower))
+            bloc.add_terminator(i)
+        del self.tantacules[name]
+        self.variables[name] = backup_maxvalue
+        self.bloc_structure = follower
+
+
     def iter_variables_aux(self, l, depth = 0, var = {}):
         for i, e in enumerate(l):
             var[list(self.variables.keys())[depth]] = i
@@ -112,7 +149,7 @@ class IRBuilderVisitor(AstVisitor):
         return self.iter_variables_aux(self.bloc_structure, depth = 0, var = {})
 
     def lookup(self, assignation, bloc_structure):
-        for assg, bloc in self.iter_variables_aux(bloc_structure):
+        for assg, bloc in self.iter_variables_aux(bloc_structure, var = {}):
             if assg == assignation:
                 return bloc
 
@@ -120,10 +157,11 @@ class IRBuilderVisitor(AstVisitor):
         self.tantacules = program.tantacules
         self.variables = {}
         for tantacule in program.declarations:
-            if isinstance(tantacule, ast.Tantacule):
-                self.tant_entry[tantacule.name] = self.new_bloc_structure()
             if isinstance(tantacule, ast.Variable):
                 self.variables[tantacule.name] = self.get_integer(tantacule.max_value)
+                del self.tantacules[tantacule.name]
+            if isinstance(tantacule, ast.Tantacule):
+                self.tant_entry[tantacule.name] = self.new_bloc_structure()
 
         # Nombre de blocs à compiler par instruction
         variables_size = 1
@@ -152,7 +190,7 @@ class IRBuilderVisitor(AstVisitor):
         for instruction in tantacule.instructions:
             self.visit(instruction)
 
-        for (_, bloc), (_, first) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[tantacule.name])):
+        for (_, bloc), (_, first) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[tantacule.name], var={})):
             bloc.add_terminator(ir.AsmGoto(first))
 
     def visit_macro(self, macro):
@@ -171,21 +209,21 @@ class IRBuilderVisitor(AstVisitor):
         self.visit(self.tantacules[condvar.name].condition)
 
     def visit_sense(self, sense):
-        if isinstance(sense.smell, ast.Marker):
-            sense.smell.index = self.get_integer(sense.smell.index)
-        for (_, bloc), (_, then), (_, else_) in zip(
+        for (assign, bloc), (_, then), (_, else_) in zip(
                 self.iter_variables(),
-                self.iter_variables_aux(self.bloc_then),
-                self.iter_variables_aux(self.bloc_else)):
+                self.iter_variables_aux(self.bloc_then, var = {}),
+                self.iter_variables_aux(self.bloc_else), var = {}):
+            if isinstance(sense.smell, ast.Marker):
+                sense.smell.index = self.get_integer(sense.smell.index, assign = assign)
             i = ir.AsmSense(sense.sense_dir, then, else_, sense.smell)
             bloc.add_terminator(i)
 
     def visit_rand(self, rand):
-        for (_, bloc), (_, then), (_, else_) in zip(
+        for (assign, bloc), (_, then), (_, else_) in zip(
                 self.iter_variables(),
-                self.iter_variables_aux(self.bloc_then),
-                self.iter_variables_aux(self.bloc_else)):
-            i = ir.AsmRoll(self.get_integer(rand.faces_count), then, else_)
+                self.iter_variables_aux(self.bloc_then, var = {}),
+                self.iter_variables_aux(self.bloc_else, var = {})):
+            i = ir.AsmRoll(self.get_integer(rand.faces_count, assign), then, else_)
             bloc.add_terminator(i)
 
     def visit_not(self, not_):
@@ -214,10 +252,25 @@ class IRBuilderVisitor(AstVisitor):
         self.visit(and_.right)
 
     # INSTRUCTION
+    def visit_assign(self, assign):
+        followers = self.new_bloc_structure()
+        for (assign, bloc) in self.iter_variables():
+            assign.value = self.get_integer(value, assign=assign)
+        pass
+
     def visit_repeat(self, repeat):
-        for i in range(self.get_integer(repeat.number)):
-            for instruction in repeat.instructions:
-                self.visit(instruction)
+        if self.get_integer(repeat.number) is None:
+            var = repeat.number.name
+            for value in range(self.variables[var]):
+                backup = self.fix_variable(var, value)
+                for i in range(self.get_integer(repeat.number)):
+                    for instruction in repeat.instructions:
+                        self.visit(instruction)
+                self.restore_backup(backup)
+        else:
+            for i in range(self.get_integer(repeat.number, assign)):
+                for instruction in repeat.instructions:
+                    self.visit(instruction)
 
     def visit_ifthenelse(self, ifthenelse):
         targets = self.new_bloc_structure()
@@ -231,13 +284,13 @@ class IRBuilderVisitor(AstVisitor):
         self.bloc_structure = thens
         for instruction in ifthenelse.then:
             self.visit(instruction)
-        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets)):
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets, var = {})):
             bloc.add_terminator(ir.AsmGoto(target))
 
         self.bloc_structure = elses
         for instruction in ifthenelse.else_:
             self.visit(instruction)
-        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets)):
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets, var = {})):
             bloc.add_terminator(ir.AsmGoto(target))
 
         self.bloc_structure = targets
@@ -247,7 +300,7 @@ class IRBuilderVisitor(AstVisitor):
         conds = self.new_bloc_structure()
         bodys = self.new_bloc_structure()
 
-        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds)):
+        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds, var = {})):
             bloc.add_terminator(ir.AsmGoto(cond))
 
         self.bloc_structure = conds
@@ -258,7 +311,7 @@ class IRBuilderVisitor(AstVisitor):
         self.bloc_structure = bodys
         for instruction in while_.instructions:
             self.visit(instruction)
-        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds)):
+        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds, var = {})):
             bloc.add_terminator(ir.AsmGoto(cond))
 
         self.bloc_structure = targets
@@ -300,11 +353,11 @@ class IRBuilderVisitor(AstVisitor):
 
 
     def visit_slideto(self, slideto):
-        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[slideto.tantacule])):
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[slideto.tantacule], var = {})):
             bloc.add_terminator(ir.AsmGoto(target))
 
     def visit_slideback(self, slideback):
-        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.current_tantacule)):
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.current_tantacule, var = {})):
             bloc.add_terminator(ir.AsmGoto(target))
 
     def visit_mark(self, mark):
@@ -325,7 +378,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in pickup.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_terminator(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -333,8 +386,8 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             bloc.add_terminator(ir.AsmPickup(follower, handler))
         self.bloc_structure = followers
 
@@ -360,7 +413,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in move.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_instruction(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -368,8 +421,8 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             i = None
             if move.move_dir == ast.MoveDir.FORWARD:
                 i = ir.AsmMove(follower, handler)
@@ -390,7 +443,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in dig.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_instruction(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -398,8 +451,8 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             i = None
             if dig.move_dir == ast.MoveDir.FORWARD:
                 i = ir.AsmDig(follower, handler)
@@ -420,7 +473,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in fill.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_instruction(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -428,8 +481,8 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             i = None
             if fill.move_dir == ast.MoveDir.FORWARD:
                 i = ir.AsmFill(follower, handler)
@@ -450,7 +503,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in grab.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_terminator(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -458,8 +511,8 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             bloc.add_terminator(ir.AsmGrab(follower, handler))
         self.bloc_structure = followers
 
@@ -473,7 +526,7 @@ class IRBuilderVisitor(AstVisitor):
             self.bloc_structure = handlers
             for instruction in attack.handler:
                 self.visit(instruction)
-            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers, var = {})):
                 bloc.add_terminator(ir.AsmGoto(follower))
             self.bloc_structure = old_bloc_structure
         else:
@@ -481,7 +534,7 @@ class IRBuilderVisitor(AstVisitor):
 
 
         for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
-                                                               self.iter_variables_aux(handlers),
-                                                               self.iter_variables_aux(followers)):
+                                                               self.iter_variables_aux(handlers, var = {}),
+                                                               self.iter_variables_aux(followers, var = {})):
             bloc.add_terminator(ir.AsmAttack(follower, handler))
         self.bloc_structure = followers

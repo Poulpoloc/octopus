@@ -43,7 +43,8 @@ class Bloc:
         if not self.is_sealed():
             self.instructions.append(terminator)
             for bloc in terminator.get_successors():
-                bloc.add_predecessor(self)
+                if bloc is not None:
+                    bloc.add_predecessor(self)
 
     def accept(self, visitor):
         visitor.visit_bloc(self)
