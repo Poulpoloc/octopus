@@ -23,8 +23,8 @@ def dotter():
         irbuilder = IRBuilderVisitor()
         irbuilder.visit(expression)
 
-#        optimizer = IRGotoOptimizer()
-#        irbuilder.ir.accept(optimizer)
+        optimizer = IRGotoOptimizer()
+        irbuilder.ir.accept(optimizer)
 
         ir = irbuilder.ir
 
