@@ -126,6 +126,11 @@ def p_instructions_zero(p):
     'instructions : empty'
     p[0] = []
 
+
+def p_instruction_assign(p):
+    'instruction : ID EQ integer SEMI'
+    p[0] = ast.Assign(p[1], p[2])
+    save_location(p)
 def p_instruction_repeat(p):
     'instruction : REPEAT integer LBRACE instructions RBRACE'
     p[0] = ast.Repeat(p[2], p[4])

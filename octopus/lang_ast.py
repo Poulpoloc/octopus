@@ -87,7 +87,7 @@ class Variable(Declaration):
         self.max_value = max_value
 
     def __repr__(self):
-        return f"(var {self.name} {self.value})"
+        return f"(var {self.name} {self.max_value})"
 
     def accept(self, visitor):
         visitor.visit_variable(self)
@@ -206,6 +206,17 @@ class And(Condition):
 
 class Instruction():
     pass
+
+class Assign(Instruction):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return f"(:= {self.name} {self.value})"
+
+    def accept(self, visitor):
+        visitor.visit_assign(self)
 
 class Repeat(Instruction):
     def __init__(self, number, instructions):
