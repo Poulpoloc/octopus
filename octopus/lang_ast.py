@@ -128,7 +128,7 @@ class AtomicSmell(Smell, Enum):
     HOLEBELOW = 12
     ENEMYMARKER = 13
     HOME = 14
-    ENEMYHOME = 14
+    ENEMYHOME = 15
 
 class Marker(Smell):
     def __init__(self, index):
