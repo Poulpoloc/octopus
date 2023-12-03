@@ -17,21 +17,23 @@ def get_report(path):
         try:
             expression = parser.parse(input_string, tracking=True)
             try:
-                visitor = CodeGenVisitor()
-                visitor.visit(expression)
-
                 irbuilder = IRBuilderVisitor()
                 irbuilder.visit(expression)
-
-                optimizer = IRGotoOptimizer()
-                irbuilder.ir.accept(optimizer)
-
-                codegen = IRCodeGenerator()
-                codegen.visit(irbuilder.ir)
-            except:
-                parser_report.errors.append(CRError("Error during code gen", (1,1)))
-        except:
-            parser_report.errors.append(CRError("Error during parsing unknow to parser", (1,1)))
+                try:
+                    optimizer = IRGotoOptimizer()
+                    irbuilder.ir.accept(optimizer)
+                    try:
+                        codegen = IRCodeGenerator()
+                        codegen.visit(irbuilder.ir)
+                    except Exception as e:
+                        parser_report.errors.append(CRError(f"Error during IR -> Brain\n{str(e)}", (1,1)))
+                except Exception as e:
+                    parser_report.errors.append(CRError(f"Error during Optimizer\n{str(e)}", (1,1)))
+            except Exception as e:
+                parser_report.errors.append(CRError(f"Error during AST to IR\n{str(e)}", (1,1)))
+                           
+        except Exception as e:
+            parser_report.errors.append(CRError(f"Error during parsing unknow to parser\n{str(e)}", (1,1)))
         
         return parser_report
 
