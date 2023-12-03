@@ -208,9 +208,6 @@ def p_instruction_mark(p):
     save_location(p)
 def p_instruction_unmark(p):
     'instruction : UNMARK LPAR integer RPAR SEMI'
-    if p[3] >= 8:
-        warning = CRWarning("Marker is too large.", p.lexspan(3))
-        parser_report.warning(warning)
     p[0] = ast.Unmark(p[3])
     save_location(p)
 
