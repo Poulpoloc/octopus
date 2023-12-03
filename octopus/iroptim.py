@@ -1,6 +1,21 @@
 from octopus.ir_visitor import IRVisitor
 from octopus.ir import *
 
+class IRDeadCodeOptimizer(IRVisitor):
+    def visit_ir(self, ir: IR):
+        self.ir = ir
+        self.accessible = {}
+        self.visit(self.ir.main_bloc)
+        ir.blocs = [b for b in self.ir.blocs if b in self.accessible]
+
+    
+    def visit_bloc(self, bloc: Bloc):
+        self.accessible[bloc] = True
+        term = bloc.get_terminator()
+        for succ in term.get_successors():
+            if not succ in self.accessible:
+                self.visit(succ)
+        
 
 
 class IRGotoOptimizer(IRVisitor):
@@ -16,6 +31,9 @@ class IRGotoOptimizer(IRVisitor):
                 self.visit(bloc)
             ir.blocs = [b for b in self.ir.blocs if not b in self.to_delete]
             after = len(ir.blocs)
+        # Inline dead optio
+        opti = IRDeadCodeOptimizer()
+        ir.accept(opti)
 
 
     def visit_bloc(self, bloc: Bloc):
