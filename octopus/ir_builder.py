@@ -253,10 +253,16 @@ class IRBuilderVisitor(AstVisitor):
 
     # INSTRUCTION
     def visit_assign(self, assign):
+        print(assign)
         followers = self.new_bloc_structure()
-        for (assign, bloc) in self.iter_variables():
-            assign.value = self.get_integer(value, assign=assign)
-        pass
+        for (ass, bloc) in self.iter_variables():
+            print(assign)
+            print(assign.value)
+            value = self.get_integer(assign.value, assign=ass)
+            ass[assign.name] = value
+            i = ir.AsmGoto(self.lookup(ass, followers))
+            bloc.add_terminator(i)
+        self.bloc_structure=followers
 
     def visit_repeat(self, repeat):
         if self.get_integer(repeat.number) is None:

@@ -129,7 +129,7 @@ def p_instructions_zero(p):
 
 def p_instruction_assign(p):
     'instruction : ID EQ integer SEMI'
-    p[0] = ast.Assign(p[1], p[2])
+    p[0] = ast.Assign(p[1], p[3])
     save_location(p)
 def p_instruction_repeat(p):
     'instruction : REPEAT integer LBRACE instructions RBRACE'
