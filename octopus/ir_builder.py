@@ -175,7 +175,7 @@ class IRBuilderVisitor(AstVisitor):
 
 
         if "main" not in program.tantacules:
-            ir_report.error(CRError("No tantacule main", None))
+            ir_report.error(CRError("No tantacule main", (1,1)))
             return
         self.visit(program.tantacules["main"])
         for declaration in program.declarations:
