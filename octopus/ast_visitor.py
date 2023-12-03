@@ -20,7 +20,10 @@ class AstVisitor():
         self.visit(bool_.condition)
 
     def visit_int(self, int_):
-        self.visit(int_.value)
+        pass
+
+    def visit_variable(self, variable):
+        pass
 
     # CONDITION
     def visit_condvar(self, condvar):

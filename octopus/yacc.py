@@ -78,6 +78,10 @@ def p_int_decl(p):
     'declaration : INT ID EQ NUMBER SEMI'
     p[0] = ast.ConstInt(p[2], p[4])
     save_location(p)
+def p_var_decl(p):
+    'declaration : VAR ID LBRACE integer RBRACE SEMI'
+    p[0] = ast.Variable(p[2], p[4])
+    save_location(p)
 
 def p_condition_par(p):
     'condition : LPAR condition RPAR'

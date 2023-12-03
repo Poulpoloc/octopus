@@ -8,11 +8,11 @@ ir_report = CompilerReport()
 class IRBuilderVisitor(AstVisitor):
     def __init__(self):
         self.ir = ir.IR()
-        self.current_bloc = None
 
         self.current_tantacule = None
         self.bloc_then = None
         self.bloc_else = None
+
         self.tantacules = {}
         self.tant_entry = {}
 
@@ -45,10 +45,14 @@ class IRBuilderVisitor(AstVisitor):
             case ast.SenseDir.BELOW:
                 return "BELOW"
 
-    def get_integer(self, index):
+    def get_integer(self, index, assign = None):
         if isinstance(index, ast.Number):
             return index.value
+        if isinstance(index, int):
+            return index
         else:
+            if assign and index.name in assign:
+                return assign[index.name]
             return self.tantacules[index.name].value
 
     def smell(self, smell):
@@ -87,11 +91,45 @@ class IRBuilderVisitor(AstVisitor):
                 return "EnemyHome"
 
     # PROGRAM
+    def create_bloc_structure(self, variables):
+        if len(variables) == 1:
+            return [self.new_bloc() for i in range(variables[0])]
+        else:
+            return [self.create_bloc_structure(variables[1:]) for i in range(variables[0])]
+
+    def new_bloc_structure(self):
+        return self.create_bloc_structure(list(self.variables.values()))
+
+    def iter_variables_aux(self, l, depth = 0, var = {}):
+        for i, e in enumerate(l):
+            var[list(self.variables.keys())[depth]] = i
+            if isinstance(e, list):
+                # Plus de variables
+                yield from self.iter_variables_aux(e, depth = depth + 1, var = var)
+            else:
+                yield var, e
+    def iter_variables(self):
+        return self.iter_variables_aux(self.bloc_structure, depth = 0, var = {})
+
+    def lookup(self, assignation, bloc_structure):
+        for assg, bloc in self.iter_variables_aux(bloc_structure):
+            if assg == assignation:
+                return bloc
+
     def visit_program(self, program):
         self.tantacules = program.tantacules
+        self.variables = {}
         for tantacule in program.declarations:
             if isinstance(tantacule, ast.Tantacule):
-                self.tant_entry[tantacule.name] = self.new_bloc()
+                self.tant_entry[tantacule.name] = self.new_bloc_structure()
+            if isinstance(tantacule, ast.Variable):
+                self.variables[tantacule.name] = self.get_integer(tantacule.max_value)
+
+        # Nombre de blocs à compiler par instruction
+        variables_size = 1
+        for max_value in self.variables.values():
+            variables_size *= max_value
+
 
         if "main" not in program.tantacules:
             ir_report.error(CRError("No tantacule main", None))
@@ -103,15 +141,19 @@ class IRBuilderVisitor(AstVisitor):
 
     # DECLARATION
     def visit_tantacule(self, tantacule):
-        self.current_bloc = self.tant_entry[tantacule.name]
-        self.current_tantacule = self.current_bloc
+        self.bloc_structure = self.tant_entry[tantacule.name]
+        self.current_tantacule = self.bloc_structure
 
         if tantacule.name == "main":
-            self.ir.set_main_bloc(self.current_bloc)
+            for _, bloc in self.iter_variables():
+                self.ir.set_main_bloc(bloc)
+                break
 
         for instruction in tantacule.instructions:
             self.visit(instruction)
-        self.current_bloc.add_terminator(ir.AsmGoto(self.tant_entry[tantacule.name]))
+
+        for (_, bloc), (_, first) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[tantacule.name])):
+            bloc.add_terminator(ir.AsmGoto(first))
 
     def visit_macro(self, macro):
         pass
@@ -131,12 +173,20 @@ class IRBuilderVisitor(AstVisitor):
     def visit_sense(self, sense):
         if isinstance(sense.smell, ast.Marker):
             sense.smell.index = self.get_integer(sense.smell.index)
-        i = ir.AsmSense(sense.sense_dir, self.bloc_then, self.bloc_else, sense.smell)
-        self.current_bloc.add_terminator(i)
+        for (_, bloc), (_, then), (_, else_) in zip(
+                self.iter_variables(),
+                self.iter_variables_aux(self.bloc_then),
+                self.iter_variables_aux(self.bloc_else)):
+            i = ir.AsmSense(sense.sense_dir, then, else_, sense.smell)
+            bloc.add_terminator(i)
 
     def visit_rand(self, rand):
-        i = ir.AsmRoll(self.get_integer(rand.faces_count), self.bloc_then, self.bloc_else)
-        self.current_bloc.add_terminator(i)
+        for (_, bloc), (_, then), (_, else_) in zip(
+                self.iter_variables(),
+                self.iter_variables_aux(self.bloc_then),
+                self.iter_variables_aux(self.bloc_else)):
+            i = ir.AsmRoll(self.get_integer(rand.faces_count), then, else_)
+            bloc.add_terminator(i)
 
     def visit_not(self, not_):
         self.bloc_then, self.bloc_else = self.bloc_else, self.bloc_then
@@ -144,21 +194,23 @@ class IRBuilderVisitor(AstVisitor):
         self.bloc_then, self.bloc_else = self.bloc_else, self.bloc_then
 
     def visit_or(self, or_):
-        bloc_else1 = self.new_bloc()
-        else_ = self.bloc_else
+        bloc_else1 = self.new_bloc_structure()
+        elses = self.bloc_else
+
         self.bloc_else = bloc_else1
         self.visit(or_.left)
-        self.current_bloc = bloc_else1
-        self.bloc_else = else_
+        self.bloc_structure = bloc_else1
+        self.bloc_else = elses
         self.visit(or_.right)
 
     def visit_and(self, and_):
-        bloc_then1 = self.new_bloc()
-        then = self.bloc_then
+        bloc_then1 = self.new_bloc_structure()
+        thens = self.bloc_then
+
         self.bloc_then = bloc_then1
         self.visit(and_.left)
-        self.current_bloc = bloc_then1
-        self.bloc_then = then
+        self.bloc_structure = bloc_then1
+        self.bloc_then = thens
         self.visit(and_.right)
 
     # INSTRUCTION
@@ -168,43 +220,48 @@ class IRBuilderVisitor(AstVisitor):
                 self.visit(instruction)
 
     def visit_ifthenelse(self, ifthenelse):
-        target = self.new_bloc()
-        then = self.new_bloc()
-        else_ = self.new_bloc()
-        self.bloc_then = then
-        self.bloc_else = else_
+        targets = self.new_bloc_structure()
+        thens = self.new_bloc_structure()
+        elses = self.new_bloc_structure()
+        self.bloc_then = thens
+        self.bloc_else = elses
 
         self.visit(ifthenelse.condition)
 
-        self.current_bloc = then
+        self.bloc_structure = thens
         for instruction in ifthenelse.then:
             self.visit(instruction)
-        self.current_bloc.add_terminator(ir.AsmGoto(target))
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets)):
+            bloc.add_terminator(ir.AsmGoto(target))
 
-        self.current_bloc = else_
+        self.bloc_structure = elses
         for instruction in ifthenelse.else_:
             self.visit(instruction)
-        self.current_bloc.add_terminator(ir.AsmGoto(target))
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(targets)):
+            bloc.add_terminator(ir.AsmGoto(target))
 
-        self.current_bloc = target
+        self.bloc_structure = targets
 
     def visit_while(self, while_):
-        target = self.new_bloc()
-        cond = self.new_bloc()
-        body = self.new_bloc()
-        self.current_bloc.add_terminator(ir.AsmGoto(cond))
+        targets = self.new_bloc_structure()
+        conds = self.new_bloc_structure()
+        bodys = self.new_bloc_structure()
 
-        self.current_bloc = cond
-        self.bloc_then = body
-        self.bloc_else = target
+        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds)):
+            bloc.add_terminator(ir.AsmGoto(cond))
+
+        self.bloc_structure = conds
+        self.bloc_then = bodys
+        self.bloc_else = targets
         self.visit(while_.condition)
 
-        self.current_bloc = body
+        self.bloc_structure = bodys
         for instruction in while_.instructions:
             self.visit(instruction)
-        self.current_bloc.add_terminator(ir.AsmGoto(cond))
+        for (_, bloc), (_, cond) in zip(self.iter_variables(), self.iter_variables_aux(conds)):
+            bloc.add_terminator(ir.AsmGoto(cond))
 
-        self.current_bloc = target
+        self.bloc_structure = targets
 
     def visit_roll(self, roll):
         roll.cases_count = self.get_integer(roll.cases_count)
@@ -243,132 +300,188 @@ class IRBuilderVisitor(AstVisitor):
 
 
     def visit_slideto(self, slideto):
-        self.current_bloc.add_terminator(ir.AsmGoto(self.tant_entry[slideto.tantacule]))
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.tant_entry[slideto.tantacule])):
+            bloc.add_terminator(ir.AsmGoto(target))
 
     def visit_slideback(self, slideback):
-        self.current_bloc.add_terminator(ir.AsmGoto(self.current_tantacule))
+        for (_, bloc), (_, target) in zip(self.iter_variables(), self.iter_variables_aux(self.current_tantacule)):
+            bloc.add_terminator(ir.AsmGoto(target))
 
     def visit_mark(self, mark):
-        self.current_bloc.add_instruction(ir.AsmMark(self.get_integer(mark.index)))
+        for assign, bloc in self.iter_variables():
+            bloc.add_instruction(ir.AsmMark(self.get_integer(mark.index, assign=assign)))
 
     def visit_unmark(self, mark):
-        self.current_bloc.add_instruction(ir.AsmUnmark(self.get_integer(mark.index)))
+        for assign, bloc in self.iter_variables():
+            bloc.add_instruction(ir.AsmUnmark(self.get_integer(mark.index, assign=assign)))
 
     def visit_pickup(self, pickup):
-        follower = self.new_bloc()
-        i = ir.AsmPickup(follower, None)
-        b = self.current_bloc
-        if pickup.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        followers = self.new_bloc_structure()
+        handlers = None
+
+        if pickup.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in pickup.handler:
                 self.visit(instruction)
-            self.current_bloc.add_instruction(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_terminator(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
+
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            bloc.add_terminator(ir.AsmPickup(follower, handler))
+        self.bloc_structure = followers
 
     def visit_drop(self, drop):
-        self.current_bloc.add_instruction(ir.AsmDrop())
+        for (_, bloc) in self.iter_variables():
+            bloc.add_instruction(ir.AsmDrop())
 
     def visit_turn(self, turn):
-        match turn.direction:
-            case ast.Direction.LEFT:
-                self.current_bloc.add_instruction(ir.AsmTurnLeft())
-            case ast.Direction.RIGHT:
-                self.current_bloc.add_instruction(ir.AsmTurnRight())
+        for (_, bloc) in self.iter_variables():
+            match turn.direction:
+                case ast.Direction.LEFT:
+                    bloc.add_instruction(ir.AsmTurnLeft())
+                case ast.Direction.RIGHT:
+                    bloc.add_instruction(ir.AsmTurnRight())
 
     def visit_move(self, move):
-        b = self.current_bloc
-        follower = self.new_bloc()
-        if move.move_dir == ast.MoveDir.FORWARD:
-            i = ir.AsmMove(follower, None)
-        if move.move_dir == ast.MoveDir.UP:
-            i = ir.AsmMoveUp(follower, None)
-        if move.move_dir == ast.MoveDir.DOWN:
-            i = ir.AsmMoveDown(follower, None)
+        followers = self.new_bloc_structure()
+        handlers = None
 
-        if move.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        if move.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in move.handler:
                 self.visit(instruction)
-            self.current_bloc.add_terminator(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_instruction(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
 
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            i = None
+            if move.move_dir == ast.MoveDir.FORWARD:
+                i = ir.AsmMove(follower, handler)
+            if move.move_dir == ast.MoveDir.UP:
+                i = ir.AsmMoveUp(follower, handler)
+            if move.move_dir == ast.MoveDir.DOWN:
+                i = ir.AsmMoveDown(follower, handler)
+            bloc.add_terminator(i)
+        self.bloc_structure = followers
 
     def visit_dig(self, dig):
-        b = self.current_bloc
-        follower = self.new_bloc()
-        if dig.move_dir == ast.MoveDir.FORWARD:
-            i = ir.AsmDig(follower, None)
-        if dig.move_dir == ast.MoveDir.UP:
-            i = ir.AsmDigUp(follower, None)
-        if dig.move_dir == ast.MoveDir.DOWN:
-            i = ir.AsmDigDown(follower, None)
+        followers = self.new_bloc_structure()
+        handlers = None
 
-        if dig.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        if dig.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in dig.handler:
                 self.visit(instruction)
-            self.current_bloc.add_terminator(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_instruction(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
+
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            i = None
+            if dig.move_dir == ast.MoveDir.FORWARD:
+                i = ir.AsmDig(follower, handler)
+            if dig.move_dir == ast.MoveDir.UP:
+                i = ir.AsmDigUp(follower, handler)
+            if dig.move_dir == ast.MoveDir.DOWN:
+                i = ir.AsmDigDown(follower, handler)
+            bloc.add_terminator(i)
+        self.bloc_structure = followers
 
     def visit_fill(self, fill):
-        b = self.current_bloc
-        follower = self.new_bloc()
-        if fill.move_dir == ast.MoveDir.FORWARD:
-            i = ir.AsmFill(follower, None)
-        if fill.move_dir == ast.MoveDir.UP:
-            i = ir.AsmFillUp(follower, None)
-        if fill.move_dir == ast.MoveDir.DOWN:
-            i = ir.AsmFillDown(follower, None)
+        followers = self.new_bloc_structure()
+        handlers = None
 
-        if fill.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        if fill.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in fill.handler:
                 self.visit(instruction)
-            self.current_bloc.add_terminator(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_instruction(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
+
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            i = None
+            if fill.move_dir == ast.MoveDir.FORWARD:
+                i = ir.AsmFill(follower, handler)
+            if fill.move_dir == ast.MoveDir.UP:
+                i = ir.AsmFillUp(follower, handler)
+            if fill.move_dir == ast.MoveDir.DOWN:
+                i = ir.AsmFillDown(follower, handler)
+            bloc.add_terminator(i)
+        self.bloc_structure = followers
 
     def visit_grab(self, grab):
-        follower = self.new_bloc()
-        i = ir.AsmGrab(follower, None)
-        b = self.current_bloc
-        if grab.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        followers = self.new_bloc_structure()
+        handlers = None
+
+        if grab.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in grab.handler:
                 self.visit(instruction)
-            self.current_bloc.add_instruction(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_terminator(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
+
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            bloc.add_terminator(ir.AsmGrab(follower, handler))
+        self.bloc_structure = followers
 
     def visit_attack(self, attack):
-        follower = self.new_bloc()
-        i = ir.AsmAttack(follower, None)
-        b = self.current_bloc
-        if attack.handler is None:
-            i.handler = follower
-        else:
-            i.handler = self.new_bloc()
-            self.current_bloc = i.handler
+        followers = self.new_bloc_structure()
+        handlers = None
+
+        if attack.handler is not None:
+            handlers = self.new_bloc_structure()
+            old_bloc_structure =  self.bloc_structure
+            self.bloc_structure = handlers
             for instruction in attack.handler:
                 self.visit(instruction)
-            self.current_bloc.add_instruction(ir.AsmGoto(follower))
-        b.add_terminator(i)
-        self.current_bloc = follower
+            for (_, bloc), (_, follower) in zip(self.iter_variables(), self.iter_variables_aux(followers)):
+                bloc.add_terminator(ir.AsmGoto(follower))
+            self.bloc_structure = old_bloc_structure
+        else:
+            handlers = followers
+
+
+        for (assign, bloc), (_, handler), (_, follower) in zip(self.iter_variables(),
+                                                               self.iter_variables_aux(handlers),
+                                                               self.iter_variables_aux(followers)):
+            bloc.add_terminator(ir.AsmAttack(follower, handler))
+        self.bloc_structure = followers

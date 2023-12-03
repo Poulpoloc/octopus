@@ -81,6 +81,18 @@ class ConstInt(Declaration):
     def accept(self, visitor):
         visitor.visit_int(self)
 
+class Variable(Declaration):
+    def __init__(self, name, max_value):
+        self.name = name
+        self.max_value = max_value
+
+    def __repr__(self):
+        return f"(var {self.name} {self.value})"
+
+    def accept(self, visitor):
+        visitor.visit_variable(self)
+
+
 class Direction(Enum):
     LEFT = 1
     RIGHT = 2
