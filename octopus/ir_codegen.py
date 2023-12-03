@@ -80,6 +80,7 @@ class IRCodeGenerator(IRVisitor):
 
     def visit_ir(self, ir):
         self.visit(ir.main_bloc)
+        print(ir.main_bloc)
         for bloc in ir.blocs:
             if bloc not in self.visited:
                 self.visit(bloc)
