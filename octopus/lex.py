@@ -14,6 +14,7 @@ keywords = {
     "roll": 'ROLL',
     "bool": 'BOOL',
     "int": 'INT',
+    "var": 'VAR',
 
     "mark": 'MARK',
     "unmark": 'UNMARK',
