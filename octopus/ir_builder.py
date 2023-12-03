@@ -212,7 +212,7 @@ class IRBuilderVisitor(AstVisitor):
         for (assign, bloc), (_, then), (_, else_) in zip(
                 self.iter_variables(),
                 self.iter_variables_aux(self.bloc_then, var = {}),
-                self.iter_variables_aux(self.bloc_else), var = {}):
+                self.iter_variables_aux(self.bloc_else, var = {})):
             if isinstance(sense.smell, ast.Marker):
                 sense.smell.index = self.get_integer(sense.smell.index, assign = assign)
             i = ir.AsmSense(sense.sense_dir, then, else_, sense.smell)
