@@ -112,16 +112,22 @@ class IRBuilderVisitor(AstVisitor):
         del new_var[name]
 
         bs = self.create_bloc_structure(list(new_var.values()))
+        k = 0
         for (assg, bloc) in self.iter_variables():
+            print(self.variables, assg, k, bloc)
+            k+=1
             if assg[name] != value:
                 i = ir.AsmGoto(self.lookup(assg, follower))
                 bloc.add_terminator(i)
             else:
+                tmp = assg[name]
                 del assg[name]
                 self.variables = new_var
                 i = ir.AsmGoto(self.lookup(assg, bs))
                 self.variables = old_var
+                print(self.variables)
                 bloc.add_terminator(i)
+                assg[name] = tmp
         self.bloc_structure = bs
         self.tantacules[name] = ast.ConstInt(name, value)
         return name, value, backup_maxvalue, follower
@@ -138,8 +144,10 @@ class IRBuilderVisitor(AstVisitor):
 
 
     def iter_variables_aux(self, l, depth = 0, var = {}):
+        selfvars = self.variables
+        print("sf", selfvars)
         for i, e in enumerate(l):
-            var[list(self.variables.keys())[depth]] = i
+            var[list(selfvars.keys())[depth]] = i
             if isinstance(e, list):
                 # Plus de variables
                 yield from self.iter_variables_aux(e, depth = depth + 1, var = var)
@@ -274,6 +282,14 @@ class IRBuilderVisitor(AstVisitor):
             for i in range(self.get_integer(repeat.number)):
                 for instruction in repeat.instructions:
                     self.visit(instruction)
+
+    def visit_case(self, case_):
+        var = case_.name
+        for value, instructions in enumerate(case_.cases):
+            backup = self.fix_variable(var, value)
+            for instruction in instructions:
+                self.visit(instruction)
+            self.restore_backup(backup)
 
     def visit_ifthenelse(self, ifthenelse):
         targets = self.new_bloc_structure()

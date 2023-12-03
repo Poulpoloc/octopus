@@ -229,6 +229,18 @@ class Repeat(Instruction):
     def accept(self, visitor):
         visitor.visit_repeat(self)
 
+class Case(Instruction):
+    def __init__(self, name, cases):
+        self.name = name
+        self.cases = cases
+
+    def __repr__(self):
+        return f"(case {self.name} {self.cases})"
+
+    def accept(self, visitor):
+        visitor.visit_case(self)
+
+
 class IfThenElse(Instruction):
     def __init__(self, condition, then, else_):
         self.condition = condition

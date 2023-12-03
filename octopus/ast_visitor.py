@@ -54,6 +54,12 @@ class AstVisitor():
         for instruction in self.instructions:
             self.visit(instruction)
 
+    def visit_case(self, case_):
+        for instructions in case_.cases:
+            for instruction in instructions:
+                self.visit(instruction)
+
+
     def visit_ifthenelse(self, ifthenelse):
         self.visit(ifthenelse.condition)
         for instruction in ifthenelse.then:

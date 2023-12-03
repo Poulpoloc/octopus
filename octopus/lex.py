@@ -12,6 +12,7 @@ keywords = {
     "else": 'ELSE',
     "while": 'WHILE',
     "roll": 'ROLL',
+    "case": 'CASE',
     "bool": 'BOOL',
     "int": 'INT',
     "var": 'VAR',

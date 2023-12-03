@@ -136,6 +136,11 @@ def p_instruction_repeat(p):
     p[0] = ast.Repeat(p[2], p[4])
     save_location(p)
 
+def p_instruction_case(p):
+    'instruction : CASE ID cases'
+    p[0] = ast.Case(p[2], p[3])
+    save_location(p)
+
 def p_instruction_if(p):
     'instruction : IF LPAR condition RPAR LBRACE instructions RBRACE'
     p[0] = ast.IfThenElse(condition=p[3], then=p[6], else_=[])
