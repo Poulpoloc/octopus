@@ -268,7 +268,7 @@ class IRBuilderVisitor(AstVisitor):
                         self.visit(instruction)
                 self.restore_backup(backup)
         else:
-            for i in range(self.get_integer(repeat.number, assign)):
+            for i in range(self.get_integer(repeat.number)):
                 for instruction in repeat.instructions:
                     self.visit(instruction)
 
