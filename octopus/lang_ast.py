@@ -87,7 +87,7 @@ class Variable(Declaration):
         self.max_value = max_value
 
     def __repr__(self):
-        return f"(var {self.name} {self.value})"
+        return f"(var {self.name} {self.max_value})"
 
     def accept(self, visitor):
         visitor.visit_variable(self)
@@ -128,7 +128,7 @@ class AtomicSmell(Smell, Enum):
     HOLEBELOW = 12
     ENEMYMARKER = 13
     HOME = 14
-    ENEMYHOME = 14
+    ENEMYHOME = 15
 
 class Marker(Smell):
     def __init__(self, index):
