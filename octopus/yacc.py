@@ -385,7 +385,7 @@ def p_error(t):
     if t is not None:
         error = CRError("Syntax Error.", (t.lexpos, t.lexpos))
         parser_report.error(error)
-        print(f"Syntax error, unexpected token {t.type}")
+        print(f"Syntax error, unexpected token {t.type} line {t.lineno}")
     else:
         print(f"Syntax error, unexpected token {t.type}")
 
