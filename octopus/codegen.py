@@ -89,7 +89,7 @@ class CodeGenVisitor(AstVisitor):
     def visit_program(self, program):
         self.tantacules = program.tantacules
         if "main" not in program.tantacules:
-            codegen_report.error(CRError("No tantacule main", None))
+            codegen_report.error(CRError("No tantacule main", (1,1)))
         self.visit(program.tantacules["main"])
         for declaration in program.declarations:
             if declaration.name != "main":
