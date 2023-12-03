@@ -101,7 +101,7 @@ class IRBuilderVisitor(AstVisitor):
             return [self.create_bloc_structure(variables[1:]) for i in range(variables[0])]
 
     def new_bloc_structure(self):
-        return self.create_bloc_structure(list(self.variables.values()))
+        return self.create_bloc_structure([self.variables[name] for name in sorted(self.variables)])
 
     def fix_variable(self, name, value):
         follower = self.new_bloc_structure()
@@ -112,9 +112,7 @@ class IRBuilderVisitor(AstVisitor):
         del new_var[name]
 
         bs = self.create_bloc_structure(list(new_var.values()))
-        k = 0
         for (assg, bloc) in self.iter_variables():
-            k+=1
             if assg[name] != value:
                 i = ir.AsmGoto(self.lookup(assg, follower))
                 bloc.add_terminator(i)
@@ -128,23 +126,29 @@ class IRBuilderVisitor(AstVisitor):
                 assg[name] = tmp
         self.bloc_structure = bs
         self.tantacules[name] = ast.ConstInt(name, value)
+        self.variables = new_var
         return name, value, backup_maxvalue, follower
 
     def restore_backup(self, backup):
         name, value, backup_maxvalue, follower = backup
+        old_var = self.variables.copy()
+        new_var = self.variables.copy()
+        new_var[name] = backup_maxvalue
         for (asg, bloc) in self.iter_variables():
             asg[name] = value
+            self.variables = new_var
             i = ir.AsmGoto(self.lookup(asg, follower))
+            self.variables = old_var
             bloc.add_terminator(i)
         del self.tantacules[name]
-        self.variables[name] = backup_maxvalue
+        self.variables = new_var
         self.bloc_structure = follower
 
 
     def iter_variables_aux(self, l, depth = 0, var = {}):
         selfvars = self.variables
         for i, e in enumerate(l):
-            var[list(selfvars.keys())[depth]] = i
+            var[list(sorted(selfvars.keys()))[depth]] = i
             if isinstance(e, list):
                 # Plus de variables
                 yield from self.iter_variables_aux(e, depth = depth + 1, var = var)
