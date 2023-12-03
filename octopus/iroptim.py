@@ -22,9 +22,11 @@ class IRGotoOptimizer(IRVisitor):
 
     def visit_ir(self, ir: IR):
         self.ir = ir
+        ir.blocs = [b for b in ir.blocs if len(b.instructions)>0]
         before,after = len(ir.blocs), len(ir.blocs)-1
         while before!=after: # Point fixe
             print("IR Loop")
+            assert ir.main_bloc in ir.blocs
             before = len(ir.blocs)
             self.to_delete = []
             for bloc in sorted(ir.blocs, key=lambda b: len(b.predecessors)):
@@ -32,8 +34,11 @@ class IRGotoOptimizer(IRVisitor):
             ir.blocs = [b for b in self.ir.blocs if not b in self.to_delete]
             after = len(ir.blocs)
         # Inline dead optio
+        assert ir.main_bloc in ir.blocs
         opti = IRDeadCodeOptimizer()
         ir.accept(opti)
+        assert ir.main_bloc in ir.blocs
+
 
 
     def visit_bloc(self, bloc: Bloc):
@@ -46,6 +51,7 @@ class IRGotoOptimizer(IRVisitor):
                     pass
                 self.to_delete.append(bloc)
                 if bloc == self.ir.main_bloc:
+                    assert goto.target not in self.to_delete
                     self.ir.main_bloc = goto.target
                 
             elif len(bloc.instructions) == 1: # Reduce path
@@ -62,7 +68,11 @@ class IRGotoOptimizer(IRVisitor):
                         end.add_predecessor(start)
                         # Replace goto by end in start terminator
                         start.get_terminator().replace(bloc,end)
+                        if bloc == self.ir.main_bloc:
+                            assert start not in self.to_delete
+                            self.ir.main_bloc = start
                     self.to_delete.append(bloc)
+        """
         elif len(bloc.instructions) == 1 and len(bloc.predecessors) == 0 and bloc != self.ir.main_bloc: # Dead Code elimination
             termin = bloc.get_terminator()
             if hasattr(termin, "target"):
@@ -86,7 +96,7 @@ class IRGotoOptimizer(IRVisitor):
                 except: pass
                 self.to_delete.append(bloc)
                 if bloc == self.ir.main_bloc:
-                    self.ir.main_bloc = termin.follower
+                    self.ir.main_bloc = termin.follower"""
             
 
         
